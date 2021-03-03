@@ -1,7 +1,11 @@
 package common.network;
 
+import common.serialize.Deserializer;
+import common.serialize.Serializer;
+
 import java.io.IOException;
 import java.net.*;
+import java.util.HashMap;
 
 /** IMPORTANT:
  *  Assume that request from client is resolved before new requests from other clients are sent (from lab manual)
@@ -24,26 +28,26 @@ public class Transport {
         try {
             this.socket.receive(packet);
             System.out.println("Length of response: " + packet.getLength() + " bytes.");
-            String msg = new String(this.buffer, 0, packet.getLength());
-            System.out.println("Message: " + msg);
-            RawMessage raw = new RawMessage(packet, buffer.clone());
+            // deseralising
+            HashMap<String, String> res = (HashMap<String, String>) Deserializer.deserialize(this.buffer);
+            RawMessage raw = new RawMessage(res, packet.getSocketAddress());
             // reset buffer
             buffer = new byte[this.bufferLen];
             return raw;
         } catch (IOException e) {
             System.out.println("IO Exception! " + e.getMessage());
             throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            System.out.println("Class Not Found Exception! " + e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 
     // Serialise obj next time
-//    public <T> void send(InetAddress destAddr, int destPort, T payload) {
-    public void send(SocketAddress dest, String payload) {
+    public void send(SocketAddress dest, Object payload) {
         try {
-            /** TODO:
-             *  To create an object for serialisation
-             */
-            byte[] buf = payload.getBytes();
+            // serialisating
+            byte[] buf = Serializer.serialize(payload);
             this.socket.send(new DatagramPacket(buf, buf.length, dest));
         } catch (IOException e) {
             System.out.println("IO Exception! " + e.getMessage());
