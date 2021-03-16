@@ -1,10 +1,12 @@
-package client;
+package main.client;
 
-import common.network.Transport;
+import main.common.network.Transport;
 
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+
+import static main.client.Util.safeReadInt;
 
 public class Main {
     public static void main(String[] args) throws SocketException {
@@ -15,10 +17,14 @@ public class Main {
 
         String MANUAL = "----------------------------------------------------------------\n" +
                 "Please choose a service by typing [1-]:\n" +
-                "1: Send a message to server\n" +
-                "2: Test RMI\n" +
+                "1: Query Availibility of a Facility\n"+
+                "2: Add Booking to a Facility\n" +
+                "3: Change Booking to a Facility\n" +
+                "4: Monitor Availability of a Facility\n" +
+                "7: Test RMI\n" +
+                "8: Send a message to main.server\n" +
                 "9: Print the manual\n" +
-                "0: Stop the client\n";
+                "0: Stop the main.client\n";
 
         DatagramSocket socket = new DatagramSocket(new InetSocketAddress(clientHost, clientPort));
         Client client = new Client(new Transport(socket, 8192), new InetSocketAddress(serverHost, serverPort)); // use CORBA Data Representation
@@ -26,13 +32,25 @@ public class Main {
         boolean terminate = false;
         System.out.print(MANUAL);
         while (!terminate) {
-            int userChoice = askUserChoice();
+            int userChoice = safeReadInt("(MAIN MENU) Your choice of service ('9' for MANUAL): ");
             switch (userChoice) {
                 case 1:
-                    client.sendMessageToServer();
+                    client.queryAvailability();
                     break;
                 case 2:
+                    client.addBooking();
+                    break;
+                case 3:
+                    client.changeBooking();
+                    break;
+                case 4:
+                    client.monitorAvailibility();
+                    break;
+                case 7:
                     client.testRMI(serverHost, serverPort);
+                    break;
+                case 8:
+                    client.sendMessageToServer();
                     break;
                 case 9:
                     System.out.print(MANUAL);
@@ -46,12 +64,8 @@ public class Main {
             }
         }
         Util.closeReader();
-        System.out.println("Stopping client...");
+        System.out.println("Stopping main.client...");
     }
 
-    private static int askUserChoice() {
-        System.out.print("\n----------------------------------------------------------------\n" +
-                "Your choice = ");
-        return Util.safeReadInt("Your choice = ");
-    }
+
 }

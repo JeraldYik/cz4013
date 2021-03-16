@@ -1,4 +1,4 @@
-package common.network;
+package main.common.network;
 
 public class MethodNotFoundException extends RuntimeException {
     public MethodNotFoundException() {}

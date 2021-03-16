@@ -1,4 +1,4 @@
-package common.serialize;
+package main.common.serialize;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

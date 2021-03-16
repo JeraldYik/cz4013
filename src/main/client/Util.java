@@ -1,4 +1,4 @@
-package client;
+package main.client;
 
 import java.util.Scanner;
 
@@ -17,10 +17,10 @@ public class Util {
      */
     public static int safeReadInt(String prompt) {
         try {
+            System.out.print("\n" + prompt);
             return Integer.parseInt(reader.nextLine());
         } catch (NumberFormatException e) {
             System.out.println("Please input an integer number!");
-            System.out.print(prompt);
             return safeReadInt(prompt);
         }
     }
@@ -46,7 +46,8 @@ public class Util {
      *
      * @return a line from stdin
      */
-    public static String readLine() {
+    public static String readLine(String prompt) {
+        System.out.print(prompt);
         return reader.nextLine();
     }
 

@@ -1,14 +1,14 @@
-package common.network;
+package main.common.network;
 
-import common.serialize.Deserializer;
-import common.serialize.Serializer;
+import main.common.serialize.Deserializer;
+import main.common.serialize.Serializer;
 
 import java.io.IOException;
 import java.net.*;
 import java.util.HashMap;
 
 /** IMPORTANT:
- *  Assume that request from client is resolved before new requests from other clients are sent (from lab manual)
+ *  Assume that request from main.client is resolved before new requests from other clients are sent (from lab manual)
  *  therefore, there is no need for a queue
  */
 
@@ -28,17 +28,17 @@ public class Transport {
         try {
             this.socket.receive(packet);
             System.out.println("Length of response: " + packet.getLength() + " bytes.");
-            // deseralising
-            HashMap<String, String> res = (HashMap<String, String>) Deserializer.deserialize(this.buffer);
+            // de-seralizing
+            HashMap<String, Object> res = (HashMap<String, Object>) Deserializer.deserialize(this.buffer);
             RawMessage raw = new RawMessage(res, packet.getSocketAddress());
             // reset buffer
             buffer = new byte[this.bufferLen];
             return raw;
         } catch (IOException e) {
-            System.out.println("IO Exception! " + e.getMessage());
+            System.out.println("Transport.receive - IO Exception! " + e.getMessage());
             throw new RuntimeException(e);
         } catch (ClassNotFoundException e) {
-            System.out.println("Class Not Found Exception! " + e.getMessage());
+            System.out.println("Transport.receive - Class Not Found Exception! " + e.getMessage());
             throw new RuntimeException(e);
         }
     }
@@ -46,11 +46,11 @@ public class Transport {
     // Serialise obj next time
     public void send(SocketAddress dest, Object payload) {
         try {
-            // serialisating
+            // serializing
             byte[] buf = Serializer.serialize(payload);
             this.socket.send(new DatagramPacket(buf, buf.length, dest));
         } catch (IOException e) {
-            System.out.println("IO Exception! " + e.getMessage());
+            System.out.println("Transport.send - IO Exception! " + e.getMessage());
             throw new RuntimeException(e);
         }
     }

@@ -1,7 +1,8 @@
-package server;
+package main.server;
 
-import common.network.RawMessage;
-import common.network.Transport;
+import main.common.facility.Facilities;
+import main.common.network.RawMessage;
+import main.common.network.Transport;
 
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
@@ -14,6 +15,8 @@ public class Main {
 
         Transport server = new Transport(new DatagramSocket(new InetSocketAddress(serverHost, port)), 8192); // use CORBA Data Representation
         System.out.println("Listening on udp://" + serverHost + ":" + port);
+
+        Facilities facilities = new Facilities();
 
         /** maybe there's no need for rmi architecture
         try {
@@ -36,16 +39,13 @@ public class Main {
         }
          **/
 
-        /** TODO:
-         *  Create a handler Class to handle different request method
-         */
         try {
             while (true) {
                 RawMessage req = server.receive();
-                Handler.handle(server, req);
+                Handler.handle(server, facilities, req);
             }
         } catch(RuntimeException e) {
-            System.out.println("Runtime Exception! " + e.getMessage());
+            System.out.println("Server.Main - Runtime Exception! " + e.getMessage());
         }
     }
 

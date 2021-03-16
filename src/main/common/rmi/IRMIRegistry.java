@@ -1,12 +1,12 @@
-package common.rmi;
+package main.common.rmi;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 public interface IRMIRegistry {
-    //    Used by a server to register the identifier of a remote object by name.
+    //    Used by a main.server to register the identifier of a remote object by name.
     void rebind (String name, IRemote obj) throws RemoteException;
-    //    Used alternatively by a server to register a remote object by name, but if the name is already bound to a remote object reference, an exception is thrown.
+    //    Used alternatively by a main.server to register a remote object by name, but if the name is already bound to a remote object reference, an exception is thrown.
     void bind (String name, IRemote obj) throws RemoteException;
     //    This method removes a binding.
     void unbind (String name, IRemote obj) throws RemoteException;
