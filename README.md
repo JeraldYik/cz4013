@@ -1,7 +1,7 @@
 # cz4013
 
-To-do list:
+## To-do list:
 
-  [] Idempotent function: Cancel booking
+  [] Idempotent function: Cancel active booking
   
-  [] Non-idempotent function: Extend booking time in 30-minute block
+  [] Non-idempotent function: Extend active booking time in 30-minute block
