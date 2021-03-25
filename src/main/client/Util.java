@@ -32,12 +32,13 @@ public class Util {
      *
      * @return an double from stdin
      */
-    public static double safeReadDouble() {
+    public static double safeReadDouble(String prompt) {
         try {
+            System.out.print("\n" + prompt);
             return Double.parseDouble(reader.nextLine());
         } catch (NumberFormatException e) {
             System.out.println("Please input a number!");
-            return safeReadDouble();
+            return safeReadDouble(prompt);
         }
     }
 
@@ -48,7 +49,12 @@ public class Util {
      */
     public static String readLine(String prompt) {
         System.out.print(prompt);
-        return reader.nextLine();
+        String input = reader.nextLine();
+        while (input.equals("")) {
+            System.out.println("Input is empty!");
+            input = readLine(prompt);
+        }
+        return input;
     }
 
     /**
