@@ -10,8 +10,8 @@ import static main.client.Util.safeReadInt;
 
 public class Main {
     public static void main(String[] args) throws SocketException {
-        String clientHost = "0.0.0.0";
-        String serverHost = "127.0.0.1";
+        String clientAddr = "0.0.0.0";
+        String serverAddr = "127.0.0.1";
         int serverPort = 49152;
         int clientPort = 49153;
 
@@ -21,13 +21,15 @@ public class Main {
                 "2: Add Booking to a Facility\n" +
                 "3: Change Booking to a Facility\n" +
                 "4: Monitor Availability of a Facility\n" +
+                "5: (Idempotent) Cancel an active Booking\n" +
+                "6: (Non-Idempotent) Extend an active Booking time in 30-minute block\n" +
                 "7: Test RMI\n" +
                 "8: Send a message to main.server\n" +
                 "9: Print the manual\n" +
                 "0: Stop the main.client\n";
 
-        DatagramSocket socket = new DatagramSocket(new InetSocketAddress(clientHost, clientPort));
-        Client client = new Client(new Transport(socket, 8192), new InetSocketAddress(serverHost, serverPort)); // use CORBA Data Representation
+        DatagramSocket socket = new DatagramSocket(new InetSocketAddress(clientAddr, clientPort));
+        Client client = new Client(new Transport(socket, 8192), new InetSocketAddress(serverAddr, serverPort)); // use CORBA Data Representation
 
         boolean terminate = false;
         System.out.print(MANUAL);
@@ -44,10 +46,13 @@ public class Main {
                     client.changeBooking();
                     break;
                 case 4:
-                    client.monitorAvailibility();
+                    client.monitorAvailibility(clientAddr, clientPort);
+                    break;
+                case 6:
+                    client.extendBooking();
                     break;
                 case 7:
-                    client.testRMI(serverHost, serverPort);
+                    client.testRMI(serverAddr, serverPort);
                     break;
                 case 8:
                     client.sendMessageToServer();

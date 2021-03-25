@@ -62,7 +62,36 @@ public class Availability {
         for (Pair<Time, Time> b : this.bookings.values()) {
             if (Time.compare(Time.getMax(b.getKey(), newStart), Time.getMin(b.getValue(), newEnd))) {
                 this.bookings.put(u_uuid, new Pair<>(foundBooking.getKey(), foundBooking.getValue()));
-                return "Booking with supplied offset cannot be updated due to existing bookings";
+                return "Booking with supplied offset cannot be updated due to overlapping with existing bookings";
+            }
+        }
+
+        // finally update metadata
+        this.bookings.put(u_uuid, new Pair<>(newStart, newEnd));
+        return "Booking updated";
+    }
+
+    /** The change modifies the length of the time period booked **/
+    public String extendBooking(String uuid, double extend) {
+        if (this.bookings.isEmpty()) return "Booking cannot be found";
+        UUID u_uuid = UUID.fromString(uuid);
+        Pair<Time, Time> foundBooking = this.bookings.get(u_uuid);
+        if (foundBooking == null) return "Booking cannot be found";
+
+        Time newStart = foundBooking.getKey();
+        int extendMin = (int) extend * 60;
+        // do the extension
+        Time newEnd = Time.add(foundBooking.getValue(), extendMin);
+        if (newEnd == null) return "Booking exceeds time frame of the week";
+
+        // remove first further overlap calculation
+        this.bookings.remove(u_uuid);
+
+        // check for overlap
+        for (Pair<Time, Time> b : this.bookings.values()) {
+            if (Time.compare(Time.getMax(b.getKey(), newStart), Time.getMin(b.getValue(), newEnd))) {
+                this.bookings.put(u_uuid, new Pair<>(foundBooking.getKey(), foundBooking.getValue()));
+                return "Booking with supplied extension cannot be updated due to overlapping with existing bookings";
             }
         }
 
