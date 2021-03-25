@@ -50,4 +50,15 @@ public class Facilities {
         return this.availability.get(t).changeBooking(uuid, offset);
     }
 
+    public String cancelBooking(String uuid) {
+        Types t = null;
+        for (HashMap.Entry<Types, ArrayList<UUID>> entry : this.bookings.entrySet()) {
+            for (UUID u : entry.getValue()) {
+                if (u.toString().equals(uuid)) t = entry.getKey();
+            }
+        }
+        if (t == null) return "Confirmation ID: " + uuid + " cannot be found.";
+        return this.availability.get(t).cancelBooking(uuid);
+    }
+
 }

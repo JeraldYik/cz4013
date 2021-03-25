@@ -6,6 +6,7 @@ public class Method {
         QUERY,
         ADD,
         CHANGE,
-        MONITOR
+        MONITOR,
+        CANCEL
     }
 }

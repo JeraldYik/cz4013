@@ -190,6 +190,12 @@ public class Client {
     }
 
     // an idempotent operation
+    public void cancelBooking() {
+        String uuid = readLine("Please enter the confirmation ID of the booking: ");
+//        try {
+//            this.transport.send(this.serverAddr, main.comm)
+//        }
+    }
 
     // a non-idempotent operation
 

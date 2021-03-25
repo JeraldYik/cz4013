@@ -70,4 +70,14 @@ public class Availability {
         this.bookings.put(u_uuid, new Pair<>(newStart, newEnd));
         return "Booking updated";
     }
+
+    public String cancelBooking(String uuid) {
+        if (this.bookings.isEmpty()) return "Booking cannot be found";
+        UUID u_uuid = UUID.fromString(uuid);
+        Pair<Time, Time> foundBooking = this.bookings.get(u_uuid);
+        if (foundBooking == null) return "Booking cannot be found";
+
+        this.bookings.remove(u_uuid);
+        return "Booking removed";
+    }
 }
