@@ -98,18 +98,22 @@ public class Client {
 
                 HashMap<UUID, Pair<Time, Time>> booking = (HashMap<UUID, Pair<Time, Time>>) res.packet.get("payload");
 
-                int bookingCount = 1;
-                for (HashMap.Entry<UUID, Pair<Time, Time>> entry : booking.entrySet()) {
-                    System.out.format("---------------Booking %d---------------\n", bookingCount);
+                if (booking.isEmpty()) {
+                    System.out.println("No active bookings");
+                } else {
+                    int bookingCount = 1;
+                    for (HashMap.Entry<UUID, Pair<Time, Time>> entry : booking.entrySet()) {
+                        System.out.format("---------------Booking %d---------------\n", bookingCount);
 
-                    /** We don't print the uuid here because it would allow anybody that queries the availability to view the uuid**/
-                    Pair<Time, Time> timeTimePair = entry.getValue();
-                    Time startTime = timeTimePair.getKey();
-                    Time endTime = timeTimePair.getValue();
+                        /** We don't print the uuid here because it would allow anybody that queries the availability to view the uuid**/
+                        Pair<Time, Time> timeTimePair = entry.getValue();
+                        Time startTime = timeTimePair.getKey();
+                        Time endTime = timeTimePair.getValue();
 
-                    System.out.println("Start Time: " + startTime);
-                    System.out.println("End Time: " + endTime);
-                    bookingCount += 1;
+                        System.out.println("Start Time: " + startTime);
+                        System.out.println("End Time: " + endTime);
+                        bookingCount += 1;
+                    }
                 }
 
             } else {
