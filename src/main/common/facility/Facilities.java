@@ -64,7 +64,20 @@ public class Facilities {
         return this.availability.get(t).changeBooking(uuid, offset);
     }
 
-    public LocalDateTime monitorAvailibility(Types t, int monitorInterval, String clientAddr, int clientPort) {
+
+    public String cancelBooking(String uuid) {
+        Types t = null;
+        for (HashMap.Entry<Types, ArrayList<UUID>> entry : this.bookings.entrySet()) {
+            for (UUID u : entry.getValue()) {
+                if (u.toString().equals(uuid)) t = entry.getKey();
+            }
+        }
+        if (t == null) return "Confirmation ID: " + uuid + " cannot be found.";
+        return this.availability.get(t).cancelBooking(uuid);
+    }
+
+
+    public LocalDateTime monitorAvailability(Types t, int monitorInterval, String clientAddr, int clientPort) {
         LocalDateTime stop = LocalDateTime.now().plusMinutes(monitorInterval);
         this.timePQ.add(stop);
         NodeInformation n = new NodeInformation(clientAddr, clientPort);
@@ -74,6 +87,7 @@ public class Facilities {
     }
 
     public String extendBooking(String uuid, double extend) {
+
         Types t = null;
         for (HashMap.Entry<Types, ArrayList<UUID>> entry : this.bookings.entrySet()) {
             for (UUID u : entry.getValue()) {
@@ -91,5 +105,4 @@ public class Facilities {
 //    public String deregister() {
 //
 //    }
-
 }

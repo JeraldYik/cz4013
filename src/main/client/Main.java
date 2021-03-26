@@ -17,7 +17,7 @@ public class Main {
 
         String MANUAL = "----------------------------------------------------------------\n" +
                 "Please choose a service by typing [1-]:\n" +
-                "1: Query Availibility of a Facility\n"+
+                "1: Query Availability of a Facility\n"+
                 "2: Add Booking to a Facility\n" +
                 "3: Change Booking to a Facility\n" +
                 "4: Monitor Availability of a Facility\n" +
@@ -46,10 +46,13 @@ public class Main {
                     client.changeBooking();
                     break;
                 case 4:
-                    client.monitorAvailibility(clientAddr, clientPort);
+                    client.monitorAvailability(clientAddr, clientPort);
                     break;
                 case 6:
                     client.extendBooking();
+                    break;
+                case 5:
+                    client.cancelBooking();
                     break;
                 case 7:
                     client.testRMI(serverAddr, serverPort);

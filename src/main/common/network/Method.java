@@ -7,6 +7,7 @@ public class Method {
         ADD,
         CHANGE,
         MONITOR,
+        CANCEL,
         EXTEND
     }
 
@@ -40,5 +41,8 @@ public class Method {
         EXTEND
     }
 
+    public enum Cancel {
+        UUID
+    }
 
 }
