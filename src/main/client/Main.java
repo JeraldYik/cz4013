@@ -46,7 +46,7 @@ public class Main {
                     client.changeBooking();
                     break;
                 case 4:
-                    client.monitorAvailibility(clientAddr, clientPort);
+                    client.monitorAvailability(clientAddr, clientPort);
                     break;
                 case 6:
                     client.extendBooking();

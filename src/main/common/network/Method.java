@@ -41,5 +41,8 @@ public class Method {
         EXTEND
     }
 
+    public enum Cancel {
+        UUID
+    }
 
 }
