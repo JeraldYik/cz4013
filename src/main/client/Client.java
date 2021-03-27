@@ -39,7 +39,7 @@ public class Client {
                 throw new MethodNotFoundException("Client.sendMessageToServer - Unexpected Method! Expecting method 'PING'");
             }
         } catch(RuntimeException e) {
-            System.out.println("Client.sendMessageToServer - Runtime Exception! " + e.getMessage());
+            System.out.println("Client.sendMessageToServer - " + e.getClass().toString() + ": " + e.getMessage());
         }
     }
 
@@ -95,7 +95,7 @@ public class Client {
                 throw new MethodNotFoundException("Client.queryAvailability - Unexpected Method! Expecting method 'QUERY'");
             }
         } catch(RuntimeException e) {
-            System.out.println("Client.queryAvailability - Runtime Exception! " + e.getMessage());
+            System.out.println("Client.queryAvailability - " + e.getClass().toString() + ": " + e.getMessage());
         }
     }
 
@@ -162,7 +162,7 @@ public class Client {
                 throw new MethodNotFoundException("Client.addBooking - Unexpected Method! Expecting method 'ADD'");
             }
         } catch(RuntimeException e) {
-            System.out.println("Client.addBooking - Runtime Exception! " + e.getMessage());
+            System.out.println("Client.addBooking - " + e.getClass().toString() + ": " + e.getMessage());
         }
     }
 
@@ -186,7 +186,7 @@ public class Client {
                 throw new MethodNotFoundException("Client.changeBooking - Unexpected Method! Expecting method 'CHANGE'");
             }
         } catch(RuntimeException e) {
-            System.out.println("Client.changeBooking - Runtime Exception! " + e.getMessage());
+            System.out.println("Client.changeBooking - " + e.getClass().toString() + ": " + e.getMessage());
         }
     }
 
@@ -194,13 +194,11 @@ public class Client {
      * For simplicity, you may assume that the user that has issued a register request for monitoring is blocked from inputting any new request until the monitor interval expires,
      * i.e., the client simply waits for the updates from the server during the monitoring interval. As a result, you do not have to use multiple threads at a client.
      */
-    public void monitorAvailibility(String clientAddr, int clientPort) {
+    public void monitorAvailibility() {
         boolean terminate = false;
         HashMap<String, Object> payload = new HashMap<>();
         int monitorInterval = safeReadInt("Please enter your monitor interval in minutes\n(1 => 1min, 60 => 1hour, 3600 => 1 day): ");
         payload.put(Method.Monitor.INTERVAL.toString(), monitorInterval);
-        payload.put(Method.Monitor.CLIENTADDR.toString(), clientAddr);
-        payload.put(Method.Monitor.CLIENTPORT.toString(), clientPort);
 
         String MANUAL = "----------------------------------------------------------------\n" +
                 "Please choose a facility by typing [1-4]:\n" +
@@ -243,7 +241,10 @@ public class Client {
             /** Add 10s for latency issues? **/
             LocalDateTime end = LocalDateTime.now().plusMinutes(Long.valueOf(monitorInterval)).plusSeconds(10);
 
-            /** Blocks user until interval expires, while continuously listen to packets from server **/
+            /** Blocks user until interval expires, while continuously listen to packets from server
+             * If no packets received, i.e. no updates within interval, receive end packet from server to end monitoring
+             * **/
+
             while (LocalDateTime.now().isBefore(end)) {
                 /** Add timeout here **/
                 RawMessage res = this.transport.receive();
@@ -257,7 +258,7 @@ public class Client {
             }
             System.out.println(monitorInterval + " mins elapsed. Interval expired");
         } catch(RuntimeException e) {
-            System.out.println("Client.monitorBooking - Runtime Exception! " + e.getMessage());
+            System.out.println("Client.monitorBooking - " + e.getClass().toString() + ": " + e.getMessage());
         }
 
     }
@@ -288,7 +289,7 @@ public class Client {
                 throw new MethodNotFoundException("Client.extendBooking - Unexpected Method! Expecting method 'EXTEND'");
             }
         } catch(RuntimeException e) {
-            System.out.println("Client.extendBooking - Runtime Exception! " + e.getMessage());
+            System.out.println("Client.extendBooking - " + e.getClass().toString() + ": " + e.getMessage());
         }
     }
 

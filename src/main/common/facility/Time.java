@@ -17,10 +17,10 @@ public class Time implements Serializable {
         SATURDAY,
         SUNDAY
     }
-//     private Days day;
-    private int day;
-    private int hour;
-    private int minute;
+//     Days day;
+    int day;
+    int hour;
+    int minute;
 
     public Time (int dayChoice, int hour, int minute) {
 //        this.day = Days.values()[dayChoice];
@@ -102,16 +102,4 @@ public class Time implements Serializable {
         }
         return time;
     }
-
-//    public int getDay() {
-//        return this.day;
-//    }
-//
-//    public int getHour() {
-//        return this.hour;
-//    }
-//
-//    public int getMinute() {
-//        return this.minute;
-//    }
 }

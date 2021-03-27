@@ -2,21 +2,25 @@ package main.common.facility;
 
 import javafx.util.Pair;
 
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.*;
 
 public class Availability {
 
-    // change to hashmap
     private HashMap<UUID, Pair<Time, Time>> bookings;
+//    private List<ArrayList<Pair<Time, Time>>> availability;
 
     public Availability() {
+//        this.availability = Arrays.asList(new ArrayList<>(7));
+//        for (ArrayList<Pair<Time, Time>> day : this.availability) {
+//            day.add(new Pair<>(new Time(1,0,0), new Time(7,23,59)));
+//        }
         this.bookings = new HashMap<>();
     }
 
     /** TODO: print out the bookings in a more visual format, minus the uuid (for one or multiple days) **/
     public HashMap<UUID, Pair<Time, Time>> queryAvailability() {
         return this.bookings;
+//        return this.availability;
     }
 
     public UUID addBooking(Time start, Time end) {
@@ -32,6 +36,29 @@ public class Availability {
         }
         UUID uuid = UUID.randomUUID();
         this.bookings.put(uuid, new Pair<>(start, end));
+
+//        /** Update availability metadata**/
+//        int dayCounter = start.day;
+//        /** Push latest availability to start of new booking **/
+//        if (dayCounter != end.day) {
+//            ArrayList<Pair<Time,Time>> currentDayAvail = this.availability.get(dayCounter-1);
+//            Pair<Time, Time> latestAvail = currentDayAvail.get(currentDayAvail.size() - 1);
+//            latestAvail.getValue().hour = start.hour;
+//            latestAvail.getValue().minute = start.minute;
+//            dayCounter++;
+//        }
+//        /** Fill up entire day **/
+//        while (dayCounter < end.day) {
+//            ArrayList<Pair<Time,Time>> currentDayAvail = this.availability.get(dayCounter-1);
+//            currentDayAvail.clear();
+//            dayCounter++;
+//        }
+//
+//        ArrayList<Pair<Time,Time>> currentDayAvail = this.availability.get(dayCounter-1);
+//        Pair<Time, Time> earliestAvail = currentDayAvail.get(0);
+//        earliestAvail.getValue().hour = end.hour;
+//        earliestAvail.getValue().minute = end.minute;
+
         return uuid;
     }
 
@@ -68,6 +95,7 @@ public class Availability {
 
         // finally update metadata
         this.bookings.put(u_uuid, new Pair<>(newStart, newEnd));
+
         return "Booking updated";
     }
 
