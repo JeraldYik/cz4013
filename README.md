@@ -4,17 +4,17 @@
 
 ## To-do list:
 
-- [ ] Idempotent function: Cancel active booking
+- [x] Idempotent function: Cancel active booking
 
 - [ ] Non-idempotent function: Extend active booking time in 30-minute block
 
 - [ ] Monitor Availability Function
 
-- [ ] Display appropriate output to User for Query Availability
+- [x] Display appropriate output to User for Query Availability
 
-- [ ] Display appropriate output to User for Add Booking
+- [x] Display appropriate output to User for Add Booking
 
-- [ ] Display appropriate output to User for Change Availability
+- [x] Display appropriate output to User for Change Availability
 
 - [ ] Implement fault-toleance measures (loss of request & reply messages) - At-least-once
     - [ ] Show that at-least-once invocation semantics can lead to wrong results for non-idempotent operations

@@ -86,9 +86,10 @@ public class Handler {
             HashMap<String, Object> o = (HashMap<String, Object>) req.packet.get(Method.PAYLOAD);
             Facilities.Types t = (Facilities.Types) o.get(Method.Monitor.FACILITY.toString());
             int monitorInterval = (Integer) o.get(Method.Monitor.INTERVAL.toString());
+
             String clientAddr = ((InetSocketAddress) req.address).getAddress().toString();
             int clientPort = ((InetSocketAddress) req.address).getPort();
-            LocalDateTime end = facilities.monitorAvailibility(t, monitorInterval, clientAddr, clientPort);
+            LocalDateTime end = facilities.monitorAvailability(t, monitorInterval, clientAddr, clientPort);
             String msg = "Monitoring " + t.toString() + " until " + end.toString();
             server.send(req.address, main.common.Util.putInHashMapPacket(Method.Methods.MONITOR, msg));
             System.out.println("Query sent to main.client.");
@@ -106,6 +107,18 @@ public class Handler {
             System.out.println("Query sent to main.client.");
 
             callback(facilities, msg.getValue(), server);
+        }
+
+        else if (method.equals(Method.Methods.CANCEL.toString())) {
+            System.out.println("Query received from main.client");
+            System.out.println(req.packet);
+
+            HashMap<String, Object> o = (HashMap<String, Object>) req.packet.get(Method.PAYLOAD);
+            String uuid = (String) o.get(Method.Cancel.UUID.toString());
+
+            String msg = facilities.cancelBooking(uuid);
+            server.send(req.address, main.common.Util.putInHashMapPacket(Method.Methods.CANCEL, msg));
+            System.out.println(("Query sent to main.client."));
         }
 
         else {

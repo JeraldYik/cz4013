@@ -1,5 +1,6 @@
 package main.client;
 
+import javafx.util.Pair;
 import main.common.facility.Facilities;
 import main.common.facility.Time;
 import main.common.network.Method;
@@ -7,9 +8,11 @@ import main.common.network.MethodNotFoundException;
 import main.common.network.RawMessage;
 import main.common.network.Transport;
 
+import java.lang.invoke.MethodHandle;
 import java.net.SocketAddress;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.UUID;
 
 import static main.client.Util.*;
 
@@ -21,6 +24,7 @@ public class Client {
         this.transport = transport;
         this.serverAddr = serverAddr;
     }
+
 
     public void sendMessageToServer() {
         try {
@@ -87,10 +91,31 @@ public class Client {
             }
             /** Add timeout here **/
             RawMessage res = this.transport.receive();
-            String rcv_method = (String) res.packet.get("method");
+            String rcv_method = (String) res.packet.get(Method.METHOD);
             if (rcv_method.equals(Method.Methods.QUERY.toString())) {
                 System.out.println("Message received from main.server: ");
-                System.out.println(res.packet);
+//                System.out.println(res.packet);
+
+                HashMap<UUID, Pair<Time, Time>> booking = (HashMap<UUID, Pair<Time, Time>>) res.packet.get(Method.PAYLOAD);
+
+                if (booking.isEmpty()) {
+                    System.out.println("No active bookings");
+                } else {
+                    int bookingCount = 1;
+                    for (HashMap.Entry<UUID, Pair<Time, Time>> entry : booking.entrySet()) {
+                        System.out.format("---------------Booking %d---------------\n", bookingCount);
+
+                        /** We don't print the uuid here because it would allow anybody that queries the availability to view the uuid**/
+                        Pair<Time, Time> timeTimePair = entry.getValue();
+                        Time startTime = timeTimePair.getKey();
+                        Time endTime = timeTimePair.getValue();
+
+                        System.out.println("Start Time: " + startTime);
+                        System.out.println("End Time: " + endTime);
+                        bookingCount += 1;
+                    }
+                }
+
             } else {
                 throw new MethodNotFoundException("Client.queryAvailability - Unexpected Method! Expecting method 'QUERY'");
             }
@@ -157,7 +182,8 @@ public class Client {
             String rcv_method = (String) res.packet.get(Method.METHOD);
             if (rcv_method.equals(Method.Methods.ADD.toString())) {
                 System.out.println("Message received from main.server: ");
-                System.out.println(res.packet);
+                String uuid = (String) res.packet.get(Method.PAYLOAD);
+                System.out.println("UUID of your booking: " + uuid);
             } else {
                 throw new MethodNotFoundException("Client.addBooking - Unexpected Method! Expecting method 'ADD'");
             }
@@ -180,8 +206,10 @@ public class Client {
             RawMessage res = this.transport.receive();
             String rcv_method = (String) res.packet.get(Method.METHOD);
             if (rcv_method.equals(Method.Methods.CHANGE.toString())) {
-                System.out.println("Message received from main.server: ");
-                System.out.println(res.packet);
+
+                String msg = (String) res.packet.get(Method.PAYLOAD);
+                System.out.println("Message received from main.server: " + msg);
+
             } else {
                 throw new MethodNotFoundException("Client.changeBooking - Unexpected Method! Expecting method 'CHANGE'");
             }
@@ -194,7 +222,7 @@ public class Client {
      * For simplicity, you may assume that the user that has issued a register request for monitoring is blocked from inputting any new request until the monitor interval expires,
      * i.e., the client simply waits for the updates from the server during the monitoring interval. As a result, you do not have to use multiple threads at a client.
      */
-    public void monitorAvailibility() {
+    public void monitorAvailability() {
         boolean terminate = false;
         HashMap<String, Object> payload = new HashMap<>();
         int monitorInterval = safeReadInt("Please enter your monitor interval in minutes\n(1 => 1min, 60 => 1hour, 3600 => 1 day): ");
@@ -264,6 +292,27 @@ public class Client {
     }
 
     // an idempotent operation
+    public void cancelBooking() {
+        String uuid = readLine("Please enter the confirmation ID of the booking: ");
+        HashMap<String, Object> payload = new HashMap<>();
+        payload.put(Method.Cancel.UUID.toString(), uuid);
+        try {
+            this.transport.send(this.serverAddr, main.common.Util.putInHashMapPacket(Method.Methods.CANCEL, payload));
+
+            /** Add timeout here **/
+            RawMessage res = this.transport.receive();
+            String rcv_method = (String) res.packet.get(Method.METHOD);
+            if (rcv_method.equals(Method.Methods.CANCEL.toString())) {
+                String msg = (String) res.packet.get(Method.PAYLOAD);
+                System.out.println("Message received from main.server: " + msg);
+
+            } else {
+                throw new MethodNotFoundException("Client.cancelBooking - Unexpected Method! Expecting method 'CANCEL'");
+            }
+        } catch (RuntimeException e) {
+            System.out.println(("Client.cancelBooking - Runtime Exception! " + e.getMessage()));
+        }
+    }
 
     // a non-idempotent operation
     public void extendBooking() {

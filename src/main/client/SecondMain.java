@@ -46,7 +46,7 @@ public class SecondMain {
                     client.changeBooking();
                     break;
                 case 4:
-                    client.monitorAvailibility();
+                    client.monitorAvailability();
                     break;
                 case 6:
                     client.extendBooking();

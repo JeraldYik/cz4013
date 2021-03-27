@@ -52,7 +52,7 @@ public class Transport {
             // serializing
             byte[] buf = Serializer.serialize(payload);
 //            SocketAddress d = new InetSocketAddress("")
-            System.out.println("this.socket.getInetAddress() " + this.socket.);
+            System.out.println("this.socket.getInetAddress() " + this.socket.getInetAddress());
             System.out.println("dest " + dest);
             this.socket.send(new DatagramPacket(buf, buf.length, dest));
         } catch (IOException e) {
