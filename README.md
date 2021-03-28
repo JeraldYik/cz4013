@@ -17,11 +17,11 @@
 - [x] Display appropriate output to User for Change Availability
 
 - [ ] Implement fault-tolerance measures (loss of request & reply messages) - At-least-once
-    - [ ] Implement client-side timeout functionalities
+    - [x] Implement client-side timeout functionalities
     - [ ] Show that at-least-once invocation semantics can lead to wrong results for non-idempotent operations
 
 - [ ] Implement fault-tolerance measures (loss of request & reply messages) - At-most-once
-    - [ ] Implement server-side 
+    - [ ] ~~Implement server-side timeout functionalities~~ (unnecessary)
     - [ ] Show that at-most-once invocation semantics work correctly for all operations
 
 - [ ] Add type of semantics to use as argument to client/server
