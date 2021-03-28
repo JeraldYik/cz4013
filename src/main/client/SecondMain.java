@@ -36,24 +36,24 @@ public class SecondMain {
         while (!terminate) {
             int userChoice = safeReadInt("(MAIN MENU) Your choice of service ('9' for MANUAL): ");
             switch (userChoice) {
-                case 1:
-                    client.queryAvailability();
-                    break;
-                case 2:
-                    client.addBooking();
-                    break;
-                case 3:
-                    client.changeBooking();
-                    break;
-                case 4:
-                    client.monitorAvailability();
-                    break;
-                case 6:
-                    client.extendBooking();
-                    break;
-                case 7:
-                    client.testRMI(serverAddr, serverPort);
-                    break;
+//                case 1:
+//                    client.queryAvailability();
+//                    break;
+//                case 2:
+//                    client.addBooking();
+//                    break;
+//                case 3:
+//                    client.changeBooking();
+//                    break;
+//                case 4:
+//                    client.monitorAvailability();
+//                    break;
+//                case 6:
+//                    client.extendBooking();
+//                    break;
+//                case 7:
+//                    client.testRMI(serverAddr, serverPort);
+//                    break;
                 case 8:
                     client.sendMessageToServer();
                     break;

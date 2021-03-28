@@ -8,7 +8,7 @@ import java.net.SocketException;
 
 import static main.client.Util.safeReadInt;
 
-public class Main {
+public class ClientMain {
     public static void main(String[] args) throws SocketException {
         String clientAddr = "0.0.0.0";
         String serverAddr = "127.0.0.1";

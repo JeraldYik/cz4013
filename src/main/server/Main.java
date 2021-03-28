@@ -7,6 +7,7 @@ import main.common.network.Transport;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 
 public class Main {
     public static void main(String[] args) throws SocketException {
@@ -41,7 +42,12 @@ public class Main {
 
         try {
             while (true) {
-                RawMessage req = server.receive();
+                RawMessage req = null;
+                try {
+                    req = server.receive();
+                } catch (SocketTimeoutException e) {
+                    System.out.println("Server.Main - SocketTimeoutException! " + e.getMessage());
+                }
                 Handler.handle(server, facilities, req);
             }
         } catch(RuntimeException e) {

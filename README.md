@@ -16,10 +16,12 @@
 
 - [x] Display appropriate output to User for Change Availability
 
-- [ ] Implement fault-toleance measures (loss of request & reply messages) - At-least-once
+- [ ] Implement fault-tolerance measures (loss of request & reply messages) - At-least-once
+    - [ ] Implement client-side timeout functionalities
     - [ ] Show that at-least-once invocation semantics can lead to wrong results for non-idempotent operations
 
-- [ ] Implement fault-toleance measures (loss of request & reply messages) - At-most-once
+- [ ] Implement fault-tolerance measures (loss of request & reply messages) - At-most-once
+    - [ ] Implement server-side 
     - [ ] Show that at-most-once invocation semantics work correctly for all operations
 
 - [ ] Add type of semantics to use as argument to client/server
