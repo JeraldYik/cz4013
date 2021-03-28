@@ -14,19 +14,20 @@ public class History {
     /**
      * Class constructor of History
      */
-    public History(){
+    public History() {
         clientList = new ArrayList<>();
     }
 
     /**
      * searches for existing client in clientList, else create a new client and insert into list
+     *
      * @param address ipaddress
-     * @param port portnumber
+     * @param port    portnumber
      * @return client object
      */
-    public Client findClient(InetAddress address, int port){
-        for(Client c : clientList){
-            if(c.address.equals(address) && c.portNumber==port){
+    public Client findClient(InetAddress address, int port) {
+        for (Client c : clientList) {
+            if (c.address.equals(address) && c.portNumber == port) {
                 return c;
             }
         }
@@ -38,13 +39,14 @@ public class History {
     /**
      * Represents each client that has sent the server a request before.
      */
-    public class Client{
+    public class Client {
         private InetAddress address;
         private int portNumber;
         private HashMap<Integer, BytePacker> messageIdToReplyMap;
         private int[] historyRecord;
         private int count;
-        public Client(InetAddress address, int portNumber){
+
+        public Client(InetAddress address, int portNumber) {
             this.address = address;
             this.portNumber = portNumber;
             this.messageIdToReplyMap = new HashMap<>();
@@ -55,12 +57,13 @@ public class History {
 
         /**
          * Searches if messageID exist in client hashmap
+         *
          * @param messageId - messageId of incoming request
          * @return reply to request if messageID does exists in the hashmap, null otherwise
          */
-        public BytePacker searchForDuplicateRequest(int messageId){
+        public BytePacker searchForDuplicateRequest(int messageId) {
             BytePacker reply = this.messageIdToReplyMap.get(messageId);
-            if(reply!=null){
+            if (reply != null) {
                 Console.debug("Request already serviced. Resending reply");
             }
             return reply;
@@ -68,11 +71,12 @@ public class History {
 
         /**
          * Adds a messageId and reply to hashmap after request is serviced.
-         * @param messageId - messageId of incoming request
+         *
+         * @param messageId          - messageId of incoming request
          * @param replyToServicedReq - reply sent to client for this request
          */
         public void addServicedReqToMap(int messageId, BytePacker replyToServicedReq) {
-            if(historyRecord[count] !=-1){
+            if (historyRecord[count] != -1) {
                 messageIdToReplyMap.remove(historyRecord[count]);
             }
             this.messageIdToReplyMap.put(messageId, replyToServicedReq);
@@ -81,3 +85,4 @@ public class History {
 
         }
     }
+}
