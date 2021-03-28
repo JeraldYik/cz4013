@@ -35,10 +35,13 @@ public class Transport {
             buffer = new byte[this.bufferLen];
             return raw;
         } catch (IOException e) {
-            System.out.println("Transport.receive - IO Exception! " + e.getMessage());
+            System.out.println("Transport.receive - " + e.getClass().toString() + ": " + e.getMessage());
             throw new RuntimeException(e);
         } catch (ClassNotFoundException e) {
-            System.out.println("Transport.receive - Class Not Found Exception! " + e.getMessage());
+            System.out.println("Transport.receive - " + e.getClass().toString() + ": " + e.getMessage());
+            throw new RuntimeException(e);
+        } catch (Exception e) {
+            System.out.println("Transport.receive - " + e.getClass().toString() + ": " + e.getMessage());
             throw new RuntimeException(e);
         }
     }
@@ -48,10 +51,15 @@ public class Transport {
         try {
             // serializing
             byte[] buf = Serializer.serialize(payload);
+//            SocketAddress d = new InetSocketAddress("")
+            System.out.println("this.socket.getInetAddress() " + this.socket.getInetAddress());
+            System.out.println("dest " + dest);
             this.socket.send(new DatagramPacket(buf, buf.length, dest));
         } catch (IOException e) {
-            System.out.println("Transport.send - IO Exception! " + e.getMessage());
-            throw new RuntimeException(e);
+            System.out.println("Transport.send - " + e.getClass().toString() + ": " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Transport.send - " + e.getClass().toString() + ": " + e.getMessage());
+            System.out.println(e);
         }
     }
 }

@@ -7,8 +7,8 @@ import java.util.HashMap;
 public class Util {
     public static HashMap<String, Object> putInHashMapPacket(Method.Methods method, Object payload) {
         HashMap<String, Object> map = new HashMap<>();
-        map.put("method", method.toString());
-        map.put("payload", payload);
+        map.put(Method.METHOD, method.toString());
+        map.put(Method.PAYLOAD, payload);
         return map;
     }
 }

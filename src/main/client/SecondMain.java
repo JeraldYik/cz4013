@@ -8,16 +8,16 @@ import java.net.SocketException;
 
 import static main.client.Util.safeReadInt;
 
-public class Main {
+public class SecondMain {
     public static void main(String[] args) throws SocketException {
         String clientAddr = "0.0.0.0";
         String serverAddr = "127.0.0.1";
         int serverPort = 49152;
-        int clientPort = 49153;
+        int clientPort = 49154;
 
         String MANUAL = "----------------------------------------------------------------\n" +
                 "Please choose a service by typing [1-]:\n" +
-                "1: Query Availability of a Facility\n"+
+                "1: Query Availibility of a Facility\n"+
                 "2: Add Booking to a Facility\n" +
                 "3: Change Booking to a Facility\n" +
                 "4: Monitor Availability of a Facility\n" +
@@ -50,9 +50,6 @@ public class Main {
                     break;
                 case 6:
                     client.extendBooking();
-                    break;
-                case 5:
-                    client.cancelBooking();
                     break;
                 case 7:
                     client.testRMI(serverAddr, serverPort);
