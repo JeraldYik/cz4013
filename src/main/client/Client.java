@@ -30,14 +30,14 @@ public class Client {
         try {
             String testmsg = readLine("Your message: ");
             this.transport.send(this.serverAddr, main.common.Util.putInHashMapPacket(Method.Methods.PING, testmsg));
-            System.out.println("Message sent to main.server.");
+            System.out.println("message sent to main.server.");
 
             /** Add timeout here **/
 
             RawMessage res = this.transport.receive();
             String method = (String) res.packet.get("method");
             if (method.equals(Method.Methods.PING.toString())) {
-                System.out.println("Message received from main.server: ");
+                System.out.println("message received from main.server: ");
                 System.out.println(res.packet);
             } else {
                 throw new MethodNotFoundException("Client.sendMessageToServer - Unexpected Method! Expecting method 'PING'");
@@ -93,7 +93,7 @@ public class Client {
             RawMessage res = this.transport.receive();
             String rcv_method = (String) res.packet.get("method");
             if (rcv_method.equals(Method.Methods.QUERY.toString())) {
-                System.out.println("Message received from main.server: ");
+                System.out.println("message received from main.server: ");
 //                System.out.println(res.packet);
 
                 HashMap<UUID, Pair<Time, Time>> booking = (HashMap<UUID, Pair<Time, Time>>) res.packet.get("payload");
@@ -181,7 +181,7 @@ public class Client {
             RawMessage res = this.transport.receive();
             String rcv_method = (String) res.packet.get(Method.METHOD);
             if (rcv_method.equals(Method.Methods.ADD.toString())) {
-                System.out.println("Message received from main.server: ");
+                System.out.println("message received from main.server: ");
                 String uuid = (String) res.packet.get(Method.PAYLOAD);
                 System.out.println("UUID of your booking: " + uuid);
             } else {
@@ -208,7 +208,7 @@ public class Client {
             if (rcv_method.equals(Method.Methods.CHANGE.toString())) {
 
                 String msg = (String) res.packet.get(Method.PAYLOAD);
-                System.out.println("Message received from main.server: " + msg);
+                System.out.println("message received from main.server: " + msg);
 
             } else {
                 throw new MethodNotFoundException("Client.changeBooking - Unexpected Method! Expecting method 'CHANGE'");
@@ -277,7 +277,7 @@ public class Client {
                 RawMessage res = this.transport.receive();
                 String rcv_method = (String) res.packet.get(Method.METHOD);
                 if (rcv_method.equals(Method.Methods.MONITOR.toString())) {
-                    System.out.println("Message received from main.server: ");
+                    System.out.println("message received from main.server: ");
                     System.out.println(res.packet);
                 } else {
                     throw new MethodNotFoundException("Client.monitorBooking - Unexpected Method! Expecting method 'MONITOR'");
@@ -303,7 +303,7 @@ public class Client {
             String rcv_method = (String) res.packet.get(Method.METHOD);
             if (rcv_method.equals(Method.Methods.CANCEL.toString())) {
                 String msg = (String) res.packet.get(Method.PAYLOAD);
-                System.out.println("Message received from main.server: " + msg);
+                System.out.println("message received from main.server: " + msg);
 
             } else {
                 throw new MethodNotFoundException("Client.cancelBooking - Unexpected Method! Expecting method 'CANCEL'");
@@ -331,7 +331,7 @@ public class Client {
             RawMessage res = this.transport.receive();
             String rcv_method = (String) res.packet.get(Method.METHOD);
             if (rcv_method.equals(Method.Methods.EXTEND.toString())) {
-                System.out.println("Message received from main.server: ");
+                System.out.println("message received from main.server: ");
                 System.out.println(res.packet);
             } else {
                 throw new MethodNotFoundException("Client.extendBooking - Unexpected Method! Expecting method 'EXTEND'");

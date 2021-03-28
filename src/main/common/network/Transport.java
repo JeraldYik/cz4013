@@ -3,6 +3,9 @@ package main.common.network;
 import main.common.serialize.Deserializer;
 import main.common.serialize.Serializer;
 
+import main.server.message.BytePacker;
+
+
 import java.io.IOException;
 import java.net.*;
 import java.util.HashMap;
@@ -17,10 +20,50 @@ public class Transport {
     int bufferLen;
     byte[] buffer;
 
+    private double failureRate;
+    private int id;
+    private int invocationSemantics;
+    private int maxTimeout;
+    private int timeout;
+    private HashMap<Integer, Boolean> handledReponse;
+
     public Transport(DatagramSocket socket, int bufferLen) {
         this.socket = socket;
         this.bufferLen = bufferLen;
         this.buffer = new byte[bufferLen];
+        this.failureRate = Constants.DEFAULT_FAIL_RATE;
+        this.invocationSemantics = Constants.NORMAL_INVO;
+        this.handledReponse = new HashMap<Integer, Boolean>();
+    }
+
+    public double getFailureRate(){
+        return this.failureRate;
+    }
+
+    public void setFailureRate(double failureRate){
+        this.failureRate = failureRate;
+    }
+
+    public int getInvocationSemantics(){
+        return this.invocationSemantics;
+    }
+
+    public void setInvocationSemantics(int invocationSemantics){
+        this.invocationSemantics = invocationSemantics;
+    }
+
+    public int getTimeout(){
+        return this.timeout;
+    }
+
+    public void setTimeout(int timeout) throws SocketException {
+        socket.setSoTimeout(timeout);
+        this.timeout = timeout;
+    }
+
+    public int getID() {
+        this.id++;
+        return this.id;
     }
 
     public RawMessage receive() {
@@ -49,9 +92,14 @@ public class Transport {
             // serializing
             byte[] buf = Serializer.serialize(payload);
             this.socket.send(new DatagramPacket(buf, buf.length, dest));
+
         } catch (IOException e) {
             System.out.println("Transport.send - IO Exception! " + e.getMessage());
             throw new RuntimeException(e);
         }
+    }
+
+    public void sendPack(SocketAddress dest, BytePacker packer) throws IOException{
+        this.socket.send(packer, dest, );
     }
 }

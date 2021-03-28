@@ -19,12 +19,12 @@ public class Handler {
         System.out.println("Method: " + method);
 
         if (method.equals(Method.Methods.PING.toString())) {
-            System.out.println("Message received from main.client: ");
+            System.out.println("message received from main.client: ");
             System.out.println(req.packet);
 
             String reply = "From main.server: " + req.packet.get("payload");
             server.send(req.address, main.common.Util.putInHashMapPacket(Method.Methods.PING, reply));
-            System.out.println("Message sent to main.client.");
+            System.out.println("message sent to main.client.");
         }
 
         else if (method.equals(Method.Methods.QUERY.toString())) {
