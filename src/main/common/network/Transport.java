@@ -17,8 +17,8 @@ public class Transport {
     DatagramSocket socket;
     int bufferLen;
     byte[] buffer;
-    private final double probability = 0.0;
-    private final int timeout = 0;
+    private final double probability = 0.3;
+    private final int timeout = 2000;
     private Random random;
 
     public Transport(DatagramSocket socket, int bufferLen) {
@@ -28,17 +28,15 @@ public class Transport {
         this.random = new Random();
     }
 
-    public RawMessage receive() throws SocketException, SocketTimeoutException {
+    public RawMessage receive() throws SocketTimeoutException {
         DatagramPacket packet = new DatagramPacket(this.buffer, this.buffer.length);
-        this.socket.setSoTimeout(timeout);
-//        System.out.println("Timeout set to: " + this.socket.getSoTimeout());
         // adding packet loss probability
         try {
-            if (true) {
+            if (random.nextDouble() < probability) {
                 this.socket.receive(packet);
             } else {
                 System.out.println("Blocking packet reception!");
-                Thread.sleep(2000);
+                Thread.sleep(timeout);
                 throw new SocketTimeoutException();
             }
             System.out.println("Length of response: " + packet.getLength() + " bytes.");
@@ -49,7 +47,7 @@ public class Transport {
             buffer = new byte[this.bufferLen];
             return raw;
         } catch (SocketTimeoutException e) {
-            System.out.println("SocketTimeoutException thrown in Transport!");
+//            System.out.println("SocketTimeoutException thrown in Transport!");
             throw new SocketTimeoutException();
         } catch (IOException e) {
             System.out.println("Transport.receive - " + e.getClass().toString() + ": " + e.getMessage());
@@ -77,6 +75,29 @@ public class Transport {
         } catch (Exception e) {
             System.out.println("Transport.send - " + e.getClass().toString() + ": " + e.getMessage());
             System.out.println(e);
+        }
+    }
+
+    public RawMessage serverReceive() {
+        DatagramPacket packet = new DatagramPacket(this.buffer, this.buffer.length);
+        try {
+            this.socket.receive(packet);
+            System.out.println("Length of response: " + packet.getLength() + " bytes.");
+            // de-seralizing
+            HashMap<String, Object> res = (HashMap<String, Object>) Deserializer.deserialize(this.buffer);
+            RawMessage raw = new RawMessage(res, packet.getSocketAddress());
+            // reset buffer
+            buffer = new byte[this.bufferLen];
+            return raw;
+        } catch (IOException e) {
+            System.out.println("Transport.receive - " + e.getClass().toString() + ": " + e.getMessage());
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            System.out.println("Transport.receive - " + e.getClass().toString() + ": " + e.getMessage());
+            throw new RuntimeException(e);
+        } catch (Exception e) {
+            System.out.println("Transport.receive - " + e.getClass().toString() + ": " + e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 }

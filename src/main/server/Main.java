@@ -7,12 +7,12 @@ import main.common.network.Transport;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
-import java.net.SocketTimeoutException;
 
 public class Main {
     public static void main(String[] args) throws SocketException {
         String serverHost  = "127.0.0.1";
         int port = 49152;
+        boolean atMostOnce = false;
 
         Transport server = new Transport(new DatagramSocket(new InetSocketAddress(serverHost, port)), 8192); // use CORBA Data Representation
         System.out.println("Listening on udp://" + serverHost + ":" + port);
@@ -42,16 +42,11 @@ public class Main {
 
         try {
             while (true) {
-                RawMessage req = null;
-                try {
-                    req = server.receive();
-                } catch (SocketTimeoutException e) {
-                    System.out.println("Server.Main - SocketTimeoutException! " + e.getMessage());
-                }
+                RawMessage req = server.serverReceive();
                 Handler.handle(server, facilities, req);
             }
         } catch(RuntimeException e) {
-            System.out.println("Server.Main - Runtime Exception! " + e.getMessage());
+            System.out.println("Server.Main - Runtime Exception! " + e.getCause());
         }
     }
 

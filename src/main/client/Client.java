@@ -1,47 +1,41 @@
 package main.client;
 
-import javafx.util.Pair;
-import main.common.facility.Facilities;
 import main.common.facility.Time;
 import main.common.network.Method;
 import main.common.network.MethodNotFoundException;
 import main.common.network.RawMessage;
 import main.common.network.Transport;
 
-import java.lang.invoke.MethodHandle;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.UUID;
 
 import static main.client.Util.*;
 
 public class Client {
     private final Transport transport;
     private final SocketAddress serverAddr;
-    private int message_id;
+    private int messageId;
 
     public Client(Transport transport, SocketAddress serverAddr) {
         this.transport = transport;
         this.serverAddr = serverAddr;
-        this.message_id = 0;
+        this.messageId = 0;
     }
 
     public int getMessageId() {
-        return message_id;
+        return messageId;
     }
 
     public void setMessageId(int message_id) {
-        this.message_id = message_id;
+        this.messageId = message_id;
     }
 
     public void sendMessageToServer() {
         boolean status = false;
         int counter = 0;
         String testmsg = readLine("Your message: ");
-        while(!status && counter<5) {
+        while(!status && counter<10) {
             try {
                 this.transport.send(this.serverAddr, main.common.Util.putInHashMapPacket(Method.Methods.PING, testmsg));
                 System.out.println("Message sent to main.server.");
@@ -57,12 +51,15 @@ public class Client {
                 } else {
                     throw new MethodNotFoundException("Client.sendMessageToServer - Unexpected Method! Expecting method 'PING'");
                 }
-            } catch(RuntimeException | SocketException e) {
+            } catch(RuntimeException e) {
                 System.out.println("Client.sendMessageToServer - " + e.getClass().toString() + ": " + e.getMessage());
             } catch (SocketTimeoutException e) {
-                System.out.println("Packet not received");
-                counter++;
+                System.out.println("\nMessage timeout, trying again...\n");
             }
+            counter++;
+        }
+        if(!status) {
+            System.out.println("Encountered error sending message!");
         }
     }
 
