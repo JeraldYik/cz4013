@@ -1,22 +1,17 @@
 package main.common.facility;
 
+import java.net.InetSocketAddress;
+
 public class NodeInformation {
-    String address;
-    int port;
+    InetSocketAddress addr;
     Facilities.Types type;
 
-    public NodeInformation(String addr, int port, Facilities.Types t) {
-        this.address = addr;
-        this.port = port;
+    public InetSocketAddress getInetSocketAddress() {
+        return this.addr;
+    }
+
+    public NodeInformation(InetSocketAddress addr, Facilities.Types t) {
+        this.addr = addr;
         this.type = t;
     }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
 }

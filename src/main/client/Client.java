@@ -3,14 +3,14 @@ package main.client;
 import javafx.util.Pair;
 import main.common.facility.Facilities;
 import main.common.facility.Time;
-import main.common.network.Method;
-import main.common.network.MethodNotFoundException;
-import main.common.network.RawMessage;
-import main.common.network.Transport;
+import main.common.network.*;
 
 import java.lang.invoke.MethodHandle;
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.net.SocketException;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -18,9 +18,9 @@ import static main.client.Util.*;
 
 public class Client {
     private final Transport transport;
-    private final SocketAddress serverAddr;
+    private final InetSocketAddress serverAddr;
 
-    public Client(Transport transport, SocketAddress serverAddr) {
+    public Client(Transport transport, InetSocketAddress serverAddr) {
         this.transport = transport;
         this.serverAddr = serverAddr;
     }
@@ -42,7 +42,7 @@ public class Client {
             } else {
                 throw new MethodNotFoundException("Client.sendMessageToServer - Unexpected Method! Expecting method 'PING'");
             }
-        } catch(RuntimeException e) {
+        } catch(Exception e) {
             System.out.println("Client.sendMessageToServer - " + e.getClass().toString() + ": " + e.getMessage());
         }
     }
@@ -266,16 +266,17 @@ public class Client {
             }
             this.transport.send(this.serverAddr, main.common.Util.putInHashMapPacket(Method.Methods.MONITOR, payload));
 
-            /** Add 10s for latency issues? **/
-            LocalDateTime end = LocalDateTime.now().plusMinutes(Long.valueOf(monitorInterval)).plusSeconds(10);
+            /** Add 2s for latency issues? **/
+            LocalDateTime end = LocalDateTime.now().plusMinutes(Long.valueOf(monitorInterval)).plusSeconds(2);
 
             /** Blocks user until interval expires, while continuously listen to packets from server
              * If no packets received, i.e. no updates within interval, receive end packet from server to end monitoring
              * **/
-
-            while (LocalDateTime.now().isBefore(end)) {
+            while (true) {
                 /** Add timeout here **/
-                RawMessage res = this.transport.receive();
+                LocalDateTime now = LocalDateTime.now();
+                int remaindingTimeout = (int) ChronoUnit.MILLIS.between(now, end);
+                RawMessage res = this.transport.setNonZeroTimeoutAndReceive(remaindingTimeout);
                 String rcv_method = (String) res.packet.get(Method.METHOD);
                 if (rcv_method.equals(Method.Methods.MONITOR.toString())) {
                     System.out.println("Message received from main.server: ");
@@ -284,8 +285,9 @@ public class Client {
                     throw new MethodNotFoundException("Client.monitorBooking - Unexpected Method! Expecting method 'MONITOR'");
                 }
             }
-            System.out.println(monitorInterval + " mins elapsed. Interval expired");
-        } catch(RuntimeException e) {
+        } catch (MonitoringExpireException e) {
+            System.out.println(monitorInterval + " min(s) elapsed. Interval expired.");
+        } catch (RuntimeException e) {
             System.out.println("Client.monitorBooking - " + e.getClass().toString() + ": " + e.getMessage());
         }
 

@@ -23,43 +23,47 @@ public class Transport {
         this.buffer = new byte[bufferLen];
     }
 
-    public RawMessage receive() {
+    public RawMessage receive(){
         DatagramPacket packet = new DatagramPacket(this.buffer, this.buffer.length);
         try {
             this.socket.receive(packet);
-            System.out.println("Length of response: " + packet.getLength() + " bytes.");
+//            System.out.println("Length of response: " + packet.getLength() + " bytes.");
             // de-seralizing
             HashMap<String, Object> res = (HashMap<String, Object>) Deserializer.deserialize(this.buffer);
-            RawMessage raw = new RawMessage(res, packet.getSocketAddress());
+            RawMessage raw = new RawMessage(res, (InetSocketAddress) packet.getSocketAddress());
             // reset buffer
             buffer = new byte[this.bufferLen];
             return raw;
+        } catch (SocketTimeoutException e) {
+          throw new MonitoringExpireException();
         } catch (IOException e) {
             System.out.println("Transport.receive - " + e.getClass().toString() + ": " + e.getMessage());
             throw new RuntimeException(e);
         } catch (ClassNotFoundException e) {
             System.out.println("Transport.receive - " + e.getClass().toString() + ": " + e.getMessage());
             throw new RuntimeException(e);
-        } catch (Exception e) {
-            System.out.println("Transport.receive - " + e.getClass().toString() + ": " + e.getMessage());
-            throw new RuntimeException(e);
         }
     }
 
     // Serialise obj next time
-    public void send(SocketAddress dest, Object payload) {
+    public void send(InetSocketAddress dest, Object payload) {
         try {
             // serializing
             byte[] buf = Serializer.serialize(payload);
-//            SocketAddress d = new InetSocketAddress("")
-            System.out.println("this.socket.getInetAddress() " + this.socket.getInetAddress());
-            System.out.println("dest " + dest);
             this.socket.send(new DatagramPacket(buf, buf.length, dest));
         } catch (IOException e) {
             System.out.println("Transport.send - " + e.getClass().toString() + ": " + e.getMessage());
-        } catch (Exception e) {
-            System.out.println("Transport.send - " + e.getClass().toString() + ": " + e.getMessage());
-            System.out.println(e);
         }
+    }
+
+    /** timeout in milliseconds **/
+    public RawMessage setNonZeroTimeoutAndReceive(int timeout) throws MonitoringExpireException{
+        try {
+            this.socket.setSoTimeout(timeout);
+            return this.receive();
+        } catch (SocketException e) {
+            throw new MonitoringExpireException();
+        }
+
     }
 }

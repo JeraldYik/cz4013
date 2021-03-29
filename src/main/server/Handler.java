@@ -20,12 +20,7 @@ public class Handler {
 
     public static void handle(Transport server, Facilities facilities, RawMessage req) {
         /** Deregister first **/
-        ArrayList<NodeInformation> deregisters = facilities.deregister();
-        while (deregisters != null && !deregisters.isEmpty()) {
-            NodeInformation n = deregisters.remove(deregisters.size() - 1);
-            SocketAddress addr = new InetSocketAddress(n.getAddress(), n.getPort());
-            server.send(addr, main.common.Util.putInHashMapPacket(Method.Methods.MONITOR, "Deregistering..."));
-        }
+        facilities.deregister();
 
         String method = (String) req.packet.get(Method.METHOD);
         System.out.println("Method: " + method);
@@ -62,7 +57,7 @@ public class Handler {
             server.send(req.address, main.common.Util.putInHashMapPacket(Method.Methods.ADD, uuid));
             System.out.println("Query sent to main.client.");
 
-            callback(facilities, t, server);
+            callback(facilities, uuid == null ? null : t, server);
         }
 
         else if (method.equals(Method.Methods.CHANGE.toString())) {
@@ -87,9 +82,9 @@ public class Handler {
             Facilities.Types t = (Facilities.Types) o.get(Method.Monitor.FACILITY.toString());
             int monitorInterval = (Integer) o.get(Method.Monitor.INTERVAL.toString());
 
-            String clientAddr = ((InetSocketAddress) req.address).getAddress().toString();
-            int clientPort = ((InetSocketAddress) req.address).getPort();
-            LocalDateTime end = facilities.monitorAvailability(t, monitorInterval, clientAddr, clientPort);
+            System.out.print("In Monitor method: ");
+            System.out.println(req.address);
+            LocalDateTime end = facilities.monitorAvailability(t, monitorInterval, req.address);
             String msg = "Monitoring " + t.toString() + " until " + end.toString();
             server.send(req.address, main.common.Util.putInHashMapPacket(Method.Methods.MONITOR, msg));
             System.out.println("Query sent to main.client.");
@@ -129,14 +124,19 @@ public class Handler {
     }
 
     private static void callback(Facilities facilities, Facilities.Types t, Transport server) {
+        System.out.println("t: " + t.toString());
         if (t == null) return;
         ArrayList<NodeInformation> clientsToUpdate = facilities.clientsToUpdate(t);
+        System.out.print("clientsToUpdate ");
+        System.out.println(clientsToUpdate);
+        System.out.print("facilities.monitors ");
+        System.out.println(facilities.getMonitors());
         while (!clientsToUpdate.isEmpty()) {
             NodeInformation n = clientsToUpdate.remove(clientsToUpdate.size() - 1);
-            SocketAddress addr = new InetSocketAddress(n.getAddress(), n.getPort());
-            /** TODO: to change to updated availability record instead **/
             HashMap<UUID, Pair<Time, Time>> bookings = facilities.queryAvailability(t);
-            server.send(addr, main.common.Util.putInHashMapPacket(Method.Methods.MONITOR, bookings));
+            System.out.print("in callback ");
+            System.out.println(n.getInetSocketAddress());
+            server.send(n.getInetSocketAddress(), main.common.Util.putInHashMapPacket(Method.Methods.MONITOR, bookings));
         }
     }
 }

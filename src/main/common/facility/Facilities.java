@@ -2,6 +2,7 @@ package main.common.facility;
 
 import javafx.util.Pair;
 
+import java.net.InetSocketAddress;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -45,7 +46,7 @@ public class Facilities {
 
     public String addBooking(Types t, Time start, Time end) {
         UUID uuid = this.availability.get(t).addBooking(start, end);
-        if (uuid == null) return "Booking for " + t.toString() + " already exist at " + start + "-" + end;
+        if (uuid == null) return null;
         else {
             this.bookings.get(t).add(uuid);
             return uuid.toString();
@@ -76,10 +77,10 @@ public class Facilities {
     }
 
 
-    public LocalDateTime monitorAvailability(Types t, int monitorInterval, String clientAddr, int clientPort) {
+    public LocalDateTime monitorAvailability(Types t, int monitorInterval, InetSocketAddress addr) {
         LocalDateTime stop = LocalDateTime.now().plusMinutes(monitorInterval);
         this.timePQ.add(stop);
-        NodeInformation n = new NodeInformation(clientAddr, clientPort, t);
+        NodeInformation n = new NodeInformation(addr, t);
         this.timeMap.put(stop, n);
         this.monitors.get(t).add(n);
         return stop;
@@ -97,28 +98,42 @@ public class Facilities {
     }
 
     /** Called whenever an update occurs
-     * Use this method to send deregister packet to target client
-     * and remove target client from cache
+     * Use this method to remove target client from cache
      */
-    public ArrayList<NodeInformation> deregister() {
-        if (this.timePQ.isEmpty()) return null;
+    public void deregister() {
+        System.out.println("in deregister");
+        if (this.timePQ.isEmpty()) return;
         LocalDateTime now = LocalDateTime.now();
         ArrayList<LocalDateTime> toDeregister = new ArrayList<>();
+        System.out.println("before while loop");
         while (this.timePQ.peek().isBefore(now)) {
             toDeregister.add(this.timePQ.poll());
         }
-        ArrayList<NodeInformation> deregisters = new ArrayList<>();
+        System.out.println(toDeregister);
         for (LocalDateTime dt : toDeregister) {
             NodeInformation currentNode = this.timeMap.get(dt);
-            for (NodeInformation n : this.monitors.get(currentNode.type)) {
-                if (n.equals(currentNode)) deregisters.add(n);
-            }
+            ListIterator<NodeInformation> iter = this.monitors.get(currentNode.type).listIterator();
+//            while (iter.hasNext()) {
+//                if (iter.next().equals(currentNode)) iter.remove();
+//            }
+            this.timeMap.remove(dt);
         }
 
-        return deregisters.isEmpty() ? null : deregisters;
+        System.out.println("before this.timePQ");
+        System.out.println(this.timePQ);
+        System.out.println("before this.monitors");
+        System.out.println(this.monitors);
+        System.out.println("before this.timemap");
+        System.out.println(this.timeMap);
     }
 
     public ArrayList<NodeInformation> clientsToUpdate(Facilities.Types t) {
+//        System.out.print("in client update ");
+//        System.out.println(this.monitors.get(t).get(0).getInetSocketAddress());
         return this.monitors.get(t);
+    }
+
+    public HashMap<Types, ArrayList<NodeInformation>> getMonitors() {
+        return monitors;
     }
 }

@@ -44,8 +44,8 @@ public class Main {
                 RawMessage req = server.receive();
                 Handler.handle(server, facilities, req);
             }
-        } catch(RuntimeException e) {
-            System.out.println("Server.Main - Runtime Exception! " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Server.Main - " + e.getClass().toString() + ": " + e.getMessage());
         }
     }
 
