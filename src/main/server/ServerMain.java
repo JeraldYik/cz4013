@@ -20,13 +20,9 @@ public class ServerMain {
         if (atMostOnce) {
             System.out.print("Current server mode: At-Most-Once");
             try {
-
                 AtMostOnceHandler handler = new AtMostOnceHandler();
-
                 while (true) {
-
                     DatagramPacket p = server.receive();
-
                     if (p.getLength() != 0) {
                         handler.handle(server, facilities, p);
                     } else {
@@ -40,13 +36,9 @@ public class ServerMain {
         else {
             System.out.print("Current server mode: At-Least-Once");
             try {
-
                 DefaultHandler handler = new DefaultHandler();
-
                 while (true) {
-
                     DatagramPacket p = server.receive();
-
                     if (p.getLength() != 0) {
                         handler.handle(server, facilities, p);
                     } else {

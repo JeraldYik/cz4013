@@ -5,21 +5,17 @@ import main.common.facility.Facilities;
 import main.common.facility.Time;
 import main.common.message.BytePacker;
 import main.common.message.ByteUnpacker;
-
 import main.common.message.OneByteInt;
 import main.common.network.Method;
-
 import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
 import java.time.temporal.ChronoUnit;
 import main.common.network.*;
-
 import java.lang.invoke.MethodHandle;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
-
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -28,11 +24,8 @@ import java.util.SortedSet;
 import java.util.UUID;
 import java.util.Arrays;
 import java.util.Random;
-
 import main.common.network.*;
-
 import javax.xml.crypto.Data;
-
 import static main.client.Util.*;
 
 public class Client {
