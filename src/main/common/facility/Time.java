@@ -20,7 +20,6 @@ public class Time {
     public int hour;
     public int minute;
 
-
     public Time (int dayChoice, int hour, int minute) {
 //        this.day = Days.values()[dayChoice];
         this.day = dayChoice;

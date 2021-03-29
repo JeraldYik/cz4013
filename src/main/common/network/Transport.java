@@ -6,9 +6,11 @@ import main.common.message.OneByteInt;
 
 
 import javax.swing.*;
+import java.awt.datatransfer.Clipboard;
 import java.awt.desktop.SystemSleepEvent;
 import java.io.IOException;
 import java.net.*;
+import java.util.HashMap;
 import java.util.Arrays;
 
 /** IMPORTANT:
@@ -21,12 +23,10 @@ public class Transport {
     int bufferLen;
     byte[] buffer;
 
-
     protected static final String STATUS = "STATUS";
     protected static final String SERVICE_ID = "SERVICEID";
     protected static final String MESSAGE_ID = "MESSAGEID";
     protected static final String REPLY = "REPLY";
-
 
     public Transport(DatagramSocket socket, int bufferLen) {
         this.socket = socket;
@@ -40,7 +40,6 @@ public class Transport {
 
         this.socket.receive(packet);
         return packet;
-
     }
 
     public void send(InetSocketAddress dest, BytePacker packer) {
@@ -68,11 +67,8 @@ public class Transport {
                 if (checkMsgId(messageId, unpackedMsg)) {
                     return unpackedMsg;
                 }
-
-            }
-            catch(IOException e) {
+            } catch(IOException e) {
                 System.out.println(e);
-                this.send(socketAddress, packer);
             }
         }
     }

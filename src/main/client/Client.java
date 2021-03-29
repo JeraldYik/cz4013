@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.SortedSet;
 import java.util.UUID;
 import java.util.Arrays;
+import java.util.Random;
 
 import main.common.network.*;
 
@@ -39,6 +40,9 @@ public class Client {
     private InetSocketAddress serverAddr;
     private final Transport transport;
     private int message_id;
+    private final double failureProbability = 0.0;
+    private final int timeout = 2000;
+    private Random random;
 
     protected static final String STATUS = "STATUS";
     protected static final String SERVICE_ID = "SERVICEID";
@@ -50,6 +54,7 @@ public class Client {
         this.transport = transport;
         this.serverAddr = serverAddr;
         this.message_id = 0;
+        this.random = new Random();
     }
 
     public int getMessageId(){
@@ -73,28 +78,37 @@ public class Client {
                     .setProperty(Method.Ping.PING.toString(), testmsg)
                     .build();
 
-            this.transport.send(this.serverAddr, packer);
-            System.out.println("message sent to server");
-            /** Add timeout here **/
+            System.out.println("testmsg: " + testmsg);
 
             try {
-
-                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
-
+                ByteUnpacker.UnpackedMsg unpackedMsg;
+                this.transport.send(this.serverAddr, packer);
+                System.out.println("message sent to server");
+                while(true) {
+                    if (this.random.nextDouble() >= failureProbability) {
+                        unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                        break;
+                    } else {
+                        System.out.println("Simulating packet loss");
+                        Thread.sleep(2000);
+                        this.transport.send(this.serverAddr, packer);
+                    }
+                }
                 if(transport.checkStatus(unpackedMsg)) {
                     String reply = unpackedMsg.getString(REPLY);
                     System.out.println("Response from server: " + reply);
                 } else {
                     System.out.println("Failed to ping");
                 }
-
+            } catch (SocketTimeoutException e) {
+                System.out.print("Request timed out after 5 tries!");
             } catch (IOException e) {
                 System.out.print(e);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-
-        } catch(RuntimeException e) {
+        } catch (RuntimeException e) {
             System.out.println("Client.sendMessageToServer - Runtime Exception! " + e.getMessage());
-
         }
     }
 
@@ -163,10 +177,10 @@ public class Client {
                 }
 
             } catch (IOException e) {
-                System.out.print(e);
+                System.out.print(e.getMessage());
             }
         } catch(RuntimeException e) {
-            System.out.println("Client.queryAvailability - " + e.getClass().toString() + ": " + e.getMessage());
+            System.out.println("Client.queryAvailability - Runtime Exception! " + e.getMessage());
         }
     }
 
@@ -251,27 +265,36 @@ public class Client {
                     .setProperty(Method.Add.FACILITY.toString(), facility)
                     .build();
 
-            transport.send(serverAddr, packer);
-
-
-            /** Add timeout here **/
+            this.transport.send(serverAddr, packer);
 
             try {
-                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                ByteUnpacker.UnpackedMsg unpackedMsg;
+                while(true) {
+                    if (this.random.nextDouble() >= failureProbability) {
+                        unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                        break;
+                    } else {
+                        System.out.println("Simulating packet loss");
+                        Thread.sleep(2000);
+                        this.transport.send(this.serverAddr, packer);
+                    }
+                }
 
                 if(transport.checkStatus(unpackedMsg)) {
                     String reply = unpackedMsg.getString(REPLY);
-                    System.out.println("UUID of booking: " + reply);
+                    System.out.println(reply);
                 } else {
                     System.out.println("Failed to add booking");
                 }
 
             } catch (IOException e) {
                 System.out.print(e);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
 
         } catch(RuntimeException e) {
-            System.out.println("Client.addBooking - " + e.getClass().toString() + ": " + e.getMessage());
+            System.out.println("Client.addBooking - Runtime Exception! " + e.getMessage());
         }
     }
 
@@ -309,7 +332,7 @@ public class Client {
             }
 
         } catch(RuntimeException e) {
-            System.out.println("Client.changeBooking - " + e.getClass().toString() + ": " + e.getMessage());
+            System.out.println("Client.changeBooking - Runtime Exception! " + e.getMessage());
         }
     }
 
@@ -317,6 +340,7 @@ public class Client {
      * For simplicity, you may assume that the user that has issued a register request for monitoring is blocked from inputting any new request until the monitor interval expires,
      * i.e., the client simply waits for the updates from the server during the monitoring interval. As a result, you do not have to use multiple threads at a client.
      */
+
     public void monitorAvailability() {
         boolean terminate = false;
         Facilities.Types facility = null;
@@ -416,7 +440,6 @@ public class Client {
         String uuid = readLine("Please enter the confirmation ID of the booking: ");
 
         try {
-
             int message_id = this.getMessageId();
 
             BytePacker packer = new BytePacker.Builder()
@@ -455,9 +478,7 @@ public class Client {
             extend = safeReadDouble("Your input is not in multiples of 0.5 or is <= 0!\nPlease enter the extension desired for this booking (in 30-minute block)\n(i.e. 30-minute => 0.5, 2-hours => 2): ");
         }
 
-
         try {
-
             int message_id = this.getMessageId();
 
             BytePacker packer = new BytePacker.Builder()
@@ -487,7 +508,7 @@ public class Client {
             }
 
         } catch(RuntimeException e) {
-            System.out.println("Client.extendBooking - " + e.getClass().toString() + ": " + e.getMessage());
+            System.out.println("Client.extendBooking - Runtime Exception! " + e.getMessage());
         }
     }
 
@@ -577,4 +598,49 @@ public class Client {
         return new Time(userDayChoice, userHourChoice, userMinuteChoice);
     }
 
+    public void debugTest() {
+        try {
+            String testmsg = readLine("Your message: ");
+
+            int message_id = this.getMessageId();
+
+            BytePacker packer = new BytePacker.Builder()
+                    .setProperty(SERVICE_ID, new OneByteInt(Method.PING))
+                    .setProperty(MESSAGE_ID, message_id)
+                    .setProperty("pingMessage", testmsg)
+                    .build();
+
+            for(int counter=1;counter<=5;counter++) {
+                this.transport.send(this.serverAddr, packer);
+                System.out.println("Duplicate message sent: " + counter);
+
+                try {
+//                DatagramPacket p = transport.receive();
+//                byte[] data = p.getData();
+//                ByteUnpacker unpacker = new ByteUnpacker.Builder()
+//                        .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
+//                        .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
+//                        .setType("pingMessage", ByteUnpacker.TYPE.STRING)
+//                        .build();
+//
+//                ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
+                    ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+
+                    if (transport.checkStatus(unpackedMsg)) {
+                        String reply = unpackedMsg.getString(REPLY);
+                        System.out.println("Response from server: " + reply);
+                    } else {
+                        System.out.println("Failed to ping");
+                    }
+
+                } catch (SocketTimeoutException e) {
+                    System.out.print("Request timed out after 5 tries!");
+                } catch (IOException e) {
+                    System.out.print(e);
+                }
+            }
+        } catch (RuntimeException e) {
+            System.out.println("Client.sendMessageToServer - Runtime Exception! " + e.getMessage());
+        }
+    }
 }
