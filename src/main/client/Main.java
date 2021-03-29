@@ -5,6 +5,7 @@ import main.common.network.Transport;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 
 import static main.client.Util.safeReadInt;
 
@@ -29,9 +30,7 @@ public class Main {
                 "0: Stop the main.client\n";
 
         DatagramSocket socket = new DatagramSocket(new InetSocketAddress(clientAddr, clientPort));
-
         Client client = new Client(new Transport(socket, 8192), new InetSocketAddress(serverAddr, serverPort)); // use CORBA Data Representation
-//        Client client = new Client(socket, serverAddr, serverPort, 10);
 
         boolean terminate = false;
         System.out.print(MANUAL);

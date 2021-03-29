@@ -4,9 +4,10 @@ import main.common.facility.Facilities;
 import main.common.network.RawMessage;
 import main.common.network.Transport;
 
-import java.net.DatagramSocket;
-import java.net.InetSocketAddress;
-import java.net.SocketException;
+import javax.xml.crypto.Data;
+import java.io.IOException;
+import java.net.*;
+
 
 public class Main {
     public static void main(String[] args) throws SocketException {
@@ -41,11 +42,19 @@ public class Main {
 
         try {
             while (true) {
-                RawMessage req = server.receive();
-                Handler.handle(server, facilities, req);
+
+                DatagramPacket p = server.receive();
+
+                if(p.getLength() != 0) {
+                    Handler.handle(server, facilities, p);
+                } else {
+                    System.out.println("Packet received from client is null");
+                }
             }
         } catch(RuntimeException e) {
             System.out.println("Server.Main - Runtime Exception! " + e.getMessage());
+        } catch(IOException e) {
+            System.out.println("Server.Main - IO Exception! " + e.getMessage());
         }
     }
 

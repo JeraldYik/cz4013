@@ -5,6 +5,7 @@ import main.common.message.ByteUnpacker;
 import main.common.message.OneByteInt;
 
 
+import javax.swing.*;
 import java.io.IOException;
 import java.net.*;
 import java.util.Arrays;
@@ -103,6 +104,17 @@ public class Transport {
                 this.send(socketAddress, packer);
             }
         }
+    }
+
+    public final BytePacker generateReply(OneByteInt status, int messageId, String reply){
+
+        BytePacker replyMessage = new BytePacker.Builder()
+                .setProperty(STATUS, status)
+                .setProperty(MESSAGE_ID, messageId)
+                .setProperty(REPLY, reply)
+                .build();
+
+         return replyMessage;
     }
 
     public final boolean checkMsgId(Integer messageId, ByteUnpacker.UnpackedMsg unpackedMsg) {
