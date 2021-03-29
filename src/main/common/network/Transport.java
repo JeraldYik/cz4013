@@ -27,12 +27,6 @@ public class Transport {
     protected static final String MESSAGE_ID = "messageId";
     protected static final String REPLY = "reply";
 
-//    private double failureRate;
-//    private int id;
-//    private int invocationSemantics;
-//    private int maxTimeout;
-//    private int timeout;
-//    private HashMap<Integer, Boolean> handledReponse;
 
     public Transport(DatagramSocket socket, int bufferLen) {
         this.socket = socket;
@@ -46,13 +40,6 @@ public class Transport {
 
         this.socket.receive(packet);
         return packet;
-//            System.out.println("Length of response: " + packet.getLength() + " bytes.");
-//            // de-seralizing
-//            HashMap<String, Object> res = (HashMap<String, Object>) Deserializer.deserialize(this.buffer);
-//            RawMessage raw = new RawMessage(res, packet.getSocketAddress());
-//            // reset buffer
-//            buffer = new byte[this.bufferLen];
-//            return raw;
 
     }
 
@@ -66,22 +53,6 @@ public class Transport {
         }
         return;
     }
-
-
-//    public void send(BytePacker packer) throws IOException {
-//        byte[] msg = packer.getByteArray();
-//        DatagramPacket p = new DatagramPacket(msg, msg.length);
-//
-//        this.socket.send(p);
-//        return;
-//    }
-
-//    public DatagramPacket receive() throws IOException {
-//        Arrays.fill(buffer, (byte) 0);
-//        DatagramPacket p = new DatagramPacket(buffer, buffer.length)
-//        this.socket.receive(p);
-//        return p;
-//    }
 
     public final ByteUnpacker.UnpackedMsg receivalProcedure(SocketAddress socketAddress, BytePacker packer, int messageId) throws IOException, SocketTimeoutException {
         while(true) {
@@ -131,6 +102,19 @@ public class Transport {
         System.out.println("Status: " + status.getValue());
         if (status.getValue() == 0) return true;
         return false;
+    }
+
+    /** timeout in milliseconds **/
+    public DatagramPacket setNonZeroTimeoutAndReceive(int timeout) throws MonitoringExpireException{
+        try {
+            this.socket.setSoTimeout(timeout);
+            return this.receive();
+        } catch (SocketException e) {
+            throw new MonitoringExpireException();
+        } catch (IOException e) {
+            System.out.println(e);
+        }
+
     }
 
 }
