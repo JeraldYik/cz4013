@@ -40,10 +40,10 @@ public class Client {
     private final Transport transport;
     private int message_id;
 
-    protected static final String STATUS = "status";
-    protected static final String SERVICE_ID = "serviceId";
-    protected static final String MESSAGE_ID = "messageId";
-    protected static final String REPLY = "reply";
+    protected static final String STATUS = "STATUS";
+    protected static final String SERVICE_ID = "SERVICEID";
+    protected static final String MESSAGE_ID = "MESSAGEID";
+    protected static final String REPLY = "REPLY";
 
 
     public Client(Transport transport, SocketAddress serverAddr){
@@ -70,7 +70,7 @@ public class Client {
             BytePacker packer = new BytePacker.Builder()
                     .setProperty(SERVICE_ID, new OneByteInt(Method.PING))
                     .setProperty(MESSAGE_ID, message_id)
-                    .setProperty("pingMessage", testmsg)
+                    .setProperty(Method.Ping.PING.toString(), testmsg)
                     .build();
 
             this.transport.send(this.serverAddr, packer);
@@ -78,12 +78,6 @@ public class Client {
             /** Add timeout here **/
 
             try {
-
-                ByteUnpacker unpacker = new ByteUnpacker.Builder()
-                        .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
-                        .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
-                        .setType("pingMessage", ByteUnpacker.TYPE.STRING)
-                        .build();
 
                 ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
 
@@ -151,7 +145,7 @@ public class Client {
             BytePacker packer = new BytePacker.Builder()
                     .setProperty(SERVICE_ID, new OneByteInt(Method.QUERY))
                     .setProperty(MESSAGE_ID, message_id)
-                    .setProperty("facility", facility)
+                    .setProperty(Method.Query.FACILITY.toString(), facility)
                     .build();
 
             transport.send(serverAddr, packer);
@@ -248,13 +242,13 @@ public class Client {
             BytePacker packer = new BytePacker.Builder()
                     .setProperty(SERVICE_ID, new OneByteInt(Method.ADD))
                     .setProperty(MESSAGE_ID, message_id)
-                    .setProperty("startDay", startDay)
-                    .setProperty("startHour", startHr)
-                    .setProperty("startMin", startMin)
-                    .setProperty("endDay", endDay)
-                    .setProperty("endHour", endHr)
-                    .setProperty("endMin", endMin)
-                    .setProperty("facility", facility)
+                    .setProperty(Method.Add.STARTDAY.toString(), startDay)
+                    .setProperty(Method.Add.STARTHOUR.toString(), startHr)
+                    .setProperty(Method.Add.STARTMIN.toString(), startMin)
+                    .setProperty(Method.Add.ENDDAY.toString(), endDay)
+                    .setProperty(Method.Add.ENDHOUR.toString(), endHr)
+                    .setProperty(Method.Add.ENDMIN.toString(), endMin)
+                    .setProperty(Method.Add.FACILITY.toString(), facility)
                     .build();
 
             transport.send(serverAddr, packer);
@@ -292,8 +286,8 @@ public class Client {
             BytePacker packer = new BytePacker.Builder()
                     .setProperty(SERVICE_ID, new OneByteInt(Method.CHANGE))
                     .setProperty(MESSAGE_ID, message_id)
-                    .setProperty("uuid", uuid)
-                    .setProperty("offset", offset)
+                    .setProperty(Method.Change.UUID.toString(), uuid)
+                    .setProperty(Method.Change.OFFSET.toString(), offset)
                     .build();
 
             this.transport.send(serverAddr, packer);
@@ -371,8 +365,8 @@ public class Client {
             BytePacker packer = new BytePacker.Builder()
                     .setProperty(SERVICE_ID, new OneByteInt(Method.EXTEND))
                     .setProperty(MESSAGE_ID, message_id)
-                    .setProperty("monitorInterval", monitorInterval)
-                    .setProperty("facility", facility)
+                    .setProperty(Method.Monitor.INTERVAL.toString(), monitorInterval)
+                    .setProperty(Method.Monitor.FACILITY.toString(), facility)
                     .build();
 
             this.transport.send(serverAddr, packer);
@@ -388,9 +382,10 @@ public class Client {
                 System.out.println("\nWaiting for response from server...");
                 LocalDateTime now = LocalDateTime.now();
                 int remainingTimeout = (int) ChronoUnit.MILLIS.between(now, end);
-                DatagramPacket p = this.transport.setNonZeroTimeoutAndReceive(remainingTimeout);
 
                 try {
+                    DatagramPacket p = this.transport.setNonZeroTimeoutAndReceive(remainingTimeout);
+
                     ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
                     if(transport.checkStatus(unpackedMsg)) {
                         String reply = unpackedMsg.getString(REPLY);
@@ -422,7 +417,7 @@ public class Client {
             BytePacker packer = new BytePacker.Builder()
                     .setProperty(SERVICE_ID, new OneByteInt(Method.CANCEL))
                     .setProperty(MESSAGE_ID, message_id)
-                    .setProperty("uuid", uuid)
+                    .setProperty(Method.Cancel.UUID.toString(), uuid)
                     .build();
 
             this.transport.send(serverAddr, packer);
@@ -463,8 +458,8 @@ public class Client {
             BytePacker packer = new BytePacker.Builder()
                     .setProperty(SERVICE_ID, new OneByteInt(Method.EXTEND))
                     .setProperty(MESSAGE_ID, message_id)
-                    .setProperty("uuid", uuid)
-                    .setProperty("extendTime", extend)
+                    .setProperty(Method.Extend.UUID.toString(), uuid)
+                    .setProperty(Method.Extend.EXTEND.toString(), extend)
                     .build();
 
             this.transport.send(serverAddr, packer);

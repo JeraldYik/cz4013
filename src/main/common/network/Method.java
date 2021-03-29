@@ -1,15 +1,6 @@
 package main.common.network;
 
 public class Method {
-//    public enum Methods {
-//        PING,
-//        QUERY,
-//        ADD,
-//        CHANGE,
-//        MONITOR,
-//        CANCEL,
-//        EXTEND
-//    }
 
     public static String METHOD = "method";
     public static String PAYLOAD = "payload";
@@ -27,8 +18,12 @@ public class Method {
     }
 
     public enum Add {
-        START,
-        END,
+        STARTDAY,
+        STARTHOUR,
+        STARTMIN,
+        ENDDAY,
+        ENDHOUR,
+        ENDMIN,
         FACILITY
     }
 
@@ -49,6 +44,10 @@ public class Method {
 
     public enum Cancel {
         UUID
+    }
+
+    public enum Ping {
+        PING,
     }
 
 }
