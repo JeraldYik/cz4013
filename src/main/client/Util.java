@@ -35,11 +35,9 @@ public class Util {
     public static double safeReadDouble(String prompt) {
         try {
             System.out.print("\n" + prompt);
-            double input = Double.parseDouble(reader.nextLine());
-            if(input > 1.0) throw new NumberFormatException();
-            return input;
+            return Double.parseDouble(reader.nextLine());
         } catch (NumberFormatException e) {
-            System.out.println("Invalid probability entered! Please try again.");
+            System.out.println("Please input a number!");
             return safeReadDouble(prompt);
         }
     }

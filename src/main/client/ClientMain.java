@@ -26,7 +26,7 @@ public class ClientMain {
                 "5: (Idempotent) Cancel an active Booking\n" +
                 "6: (Non-Idempotent) Extend an active Booking time in 30-minute block\n" +
                 "7: View available test statements\n" +
-                "8: Send a message to main.server\n" +
+                "8: Ping main.server\n" +
                 "9: Print the manual\n" +
                 "0: Stop the main.client\n";
 
@@ -41,6 +41,9 @@ public class ClientMain {
 
 
         double failureProbability = safeReadDouble("Enter preferred server reply failure probability (0.0 - 1.0): ");
+        while (failureProbability > 1.0) {
+            failureProbability = safeReadDouble("Please enter a valid probability (0.0 - 1.0): ");
+        }
 
         DatagramSocket socket = new DatagramSocket(new InetSocketAddress(clientAddr, clientPort));
         Client client = new Client(new Transport(socket, 8192), new InetSocketAddress(serverAddr, serverPort), failureProbability); // use CORBA Data Representation

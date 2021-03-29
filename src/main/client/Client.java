@@ -527,8 +527,6 @@ public class Client {
 
             this.transport.send(serverAddr, packer);
 
-            /** Add timeout here **/
-
             try {
                 ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
 
@@ -635,6 +633,8 @@ public class Client {
         return new Time(userDayChoice, userHourChoice, userMinuteChoice);
     }
 
+    /* TODO: Implement test statements */
+
     public void sendDuplicatePingsToServer() {
         try {
             String testmsg = readLine("Your message: ");
@@ -681,9 +681,54 @@ public class Client {
         }
     }
 
-    //TODO: Implement test statements
-
     public void sendDuplicateExtendsToServer() {
+        UUID uuid;
+        while (true) {
+            try {
+                uuid = UUID.fromString(readLine("Please enter the confirmation ID of the booking: "));
+                break;
+            } catch (IllegalArgumentException e) {
+                System.out.println("Please enter a valid booking UUID!");
+            }
+        }
+        double extend = safeReadDouble("Please enter the extension desired for this booking in hours (30-minute block)\n(i.e. 30-minute => 0.5, 2-hours => 2): ");
+        while (extend <= 0 || extend % 0.5 != 0.0) {
+            extend = safeReadDouble("Your input is not in multiples of 0.5 or is <= 0!\nPlease enter the extension desired for this booking (in 30-minute block)\n(i.e. 30-minute => 0.5, 2-hours => 2): ");
+        }
+
+        try {
+            int message_id = this.getMessageId();
+
+            BytePacker packer = new BytePacker.Builder()
+                    .setProperty(SERVICE_ID, new OneByteInt(Method.EXTEND))
+                    .setProperty(MESSAGE_ID, message_id)
+                    .setProperty(Method.Extend.UUID.toString(), uuid.toString())
+                    .setProperty(Method.Extend.EXTEND.toString(), extend)
+                    .build();
+
+            for (int i = 1; i <= 5; i++) {
+                this.transport.send(serverAddr, packer);
+
+                /** Add timeout here **/
+
+                try {
+                    ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+
+                    if (transport.checkStatus(unpackedMsg)) {
+                        String reply = unpackedMsg.getString(REPLY);
+                        System.out.println("Response from server: " + reply);
+                    } else {
+                        System.out.println("Failed to extend booking");
+                    }
+
+                } catch (IOException e) {
+                    System.out.print(e);
+
+                }
+            }
+        } catch (RuntimeException e) {
+            System.out.println("Client.extendBooking - Runtime Exception! " + e.getMessage());
+        }
     }
 
     public void sendDuplicateCancelsToServer() {
@@ -710,7 +755,7 @@ public class Client {
             try {
                 for (int i = 1; i <= 5; i++) {
                     this.transport.send(this.serverAddr, packer);
-                    System.out.println("message sent to server");
+                    System.out.println("Message count: " + i);
 
                     ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
 
@@ -728,6 +773,8 @@ public class Client {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        } catch (RuntimeException e) { e.printStackTrace(); }
+        } catch (RuntimeException e) {
+            System.out.println("Client.cancelBooking - Runtime Exception! " + e.getMessage());
+        }
     }
 }
