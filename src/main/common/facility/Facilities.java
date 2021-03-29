@@ -81,7 +81,6 @@ public class Facilities {
         return new Pair(result.getKey(), result.getValue() == null ? null : t);
     }
 
-
     public LocalDateTime monitorAvailability(Types t, int monitorInterval, InetSocketAddress addr) {
         LocalDateTime stop = LocalDateTime.now().plusMinutes(monitorInterval);
         this.timePQ.add(stop);

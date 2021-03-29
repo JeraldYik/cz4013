@@ -5,6 +5,7 @@ import main.common.network.Transport;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 
 import static main.client.Util.safeReadInt;
 

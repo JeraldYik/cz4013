@@ -1,11 +1,15 @@
 package main.common.network;
 
-import main.common.serialize.Deserializer;
-import main.common.serialize.Serializer;
+import main.common.message.BytePacker;
+import main.common.message.ByteUnpacker;
+import main.common.message.OneByteInt;
 
+
+import javax.swing.*;
+import java.awt.desktop.SystemSleepEvent;
 import java.io.IOException;
 import java.net.*;
-import java.util.HashMap;
+import java.util.Arrays;
 
 /** IMPORTANT:
  *  Assume that request from main.client is resolved before new requests from other clients are sent (from lab manual)
@@ -17,53 +21,97 @@ public class Transport {
     int bufferLen;
     byte[] buffer;
 
+
+    protected static final String STATUS = "status";
+    protected static final String SERVICE_ID = "serviceId";
+    protected static final String MESSAGE_ID = "messageId";
+    protected static final String REPLY = "reply";
+
+
     public Transport(DatagramSocket socket, int bufferLen) {
         this.socket = socket;
         this.bufferLen = bufferLen;
         this.buffer = new byte[bufferLen];
     }
 
-    public RawMessage receive(){
+    public DatagramPacket receive() throws IOException {
+        Arrays.fill(this.buffer, (byte) 0);
         DatagramPacket packet = new DatagramPacket(this.buffer, this.buffer.length);
-        try {
-            this.socket.receive(packet);
-//            System.out.println("Length of response: " + packet.getLength() + " bytes.");
-            // de-seralizing
-            HashMap<String, Object> res = (HashMap<String, Object>) Deserializer.deserialize(this.buffer);
-            RawMessage raw = new RawMessage(res, (InetSocketAddress) packet.getSocketAddress());
-            // reset buffer
-            buffer = new byte[this.bufferLen];
-            return raw;
-        } catch (SocketTimeoutException e) {
-          throw new MonitoringExpireException();
-        } catch (IOException e) {
-            System.out.println("Transport.receive - " + e.getClass().toString() + ": " + e.getMessage());
-            throw new RuntimeException(e);
-        } catch (ClassNotFoundException e) {
-            System.out.println("Transport.receive - " + e.getClass().toString() + ": " + e.getMessage());
-            throw new RuntimeException(e);
-        }
+
+        this.socket.receive(packet);
+        return packet;
+
     }
 
     // Serialise obj next time
-    public void send(InetSocketAddress dest, Object payload) {
+    public void send(SocketAddress dest, BytePacker packer) {
+        byte[] msg = packer.getByteArray();
         try {
-            // serializing
-            byte[] buf = Serializer.serialize(payload);
-            this.socket.send(new DatagramPacket(buf, buf.length, dest));
+            this.socket.send(new DatagramPacket(msg, msg.length, dest));
         } catch (IOException e) {
-            System.out.println("Transport.send - " + e.getClass().toString() + ": " + e.getMessage());
+            System.out.println(e);
+        }
+        return;
+    }
+
+    public final ByteUnpacker.UnpackedMsg receivalProcedure(SocketAddress socketAddress, BytePacker packer, int messageId) throws IOException, SocketTimeoutException {
+        while(true) {
+            try {
+                DatagramPacket reply = this.receive();
+                ByteUnpacker byteUnpacker = new ByteUnpacker.Builder()
+                        .setType(STATUS, ByteUnpacker.TYPE.ONE_BYTE_INT)
+                        .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
+                        .setType(REPLY, ByteUnpacker.TYPE.STRING)
+                        .build();
+
+                ByteUnpacker.UnpackedMsg unpackedMsg = byteUnpacker.parseByteArray(reply.getData());
+
+                if (checkMsgId(messageId, unpackedMsg)) {
+                    return unpackedMsg;
+                }
+
+            }
+            catch(IOException e) {
+                System.out.println(e);
+                this.send(socketAddress, packer);
+            }
         }
     }
 
+    public final BytePacker generateReply(OneByteInt status, int messageId, String reply){
+
+        BytePacker replyMessage = new BytePacker.Builder()
+                .setProperty(STATUS, status)
+                .setProperty(MESSAGE_ID, messageId)
+                .setProperty(REPLY, reply)
+                .build();
+
+         return replyMessage;
+    }
+
+    public final boolean checkMsgId(Integer messageId, ByteUnpacker.UnpackedMsg unpackedMsg) {
+        Integer returnMessageId = unpackedMsg.getInteger(MESSAGE_ID);
+        if (returnMessageId != null) {
+            return messageId == returnMessageId;
+        }
+        return false;
+    }
+
+    public final boolean checkStatus(ByteUnpacker.UnpackedMsg unpackedMsg) {
+        OneByteInt status = unpackedMsg.getOneByteInt(STATUS);
+        System.out.println("Status: " + status.getValue());
+        if (status.getValue() == 0) return true;
+        return false;
+    }
+
     /** timeout in milliseconds **/
-    public RawMessage setNonZeroTimeoutAndReceive(int timeout) throws MonitoringExpireException{
+    public DatagramPacket setNonZeroTimeoutAndReceive(int timeout) throws MonitoringExpireException, IOException{
         try {
             this.socket.setSoTimeout(timeout);
             return this.receive();
         } catch (SocketException e) {
             throw new MonitoringExpireException();
         }
-
     }
+
 }
