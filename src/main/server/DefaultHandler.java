@@ -2,26 +2,21 @@ package main.server;
 
 import javafx.util.Pair;
 import main.common.facility.Facilities;
-import main.common.facility.NodeInformation;
 import main.common.facility.Time;
 import main.common.message.BytePacker;
 import main.common.message.ByteUnpacker;
 import main.common.message.OneByteInt;
 import main.common.network.Method;
 import main.common.network.MethodNotFoundException;
-//import main.common.network.RawMessage;
 import main.common.network.Transport;
-
 import java.net.*;
 
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
-public class Handler {
+public class DefaultHandler {
 
     protected static final String STATUS = "STATUS";
     protected static final String SERVICE_ID = "SERVICEID";
@@ -57,8 +52,7 @@ public class Handler {
             System.out.println("Received ping from client: " + pingMessage);
 
             OneByteInt status = new OneByteInt(0);
-            String reply = String.format("From main.server: ping received");
-
+            String reply = String.format("From main.server: ping received! Message: " + pingMessage);
             BytePacker replyMessageClient = server.generateReply(status, messageId, reply);
 
             server.send(new InetSocketAddress(clientAddr, clientPort), replyMessageClient);
@@ -77,16 +71,19 @@ public class Handler {
 
             ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
 
+            OneByteInt status = new OneByteInt(0);
+            int messageId = unpackedMsg.getInteger(MESSAGE_ID);
+
             String facility = unpackedMsg.getString(Method.Query.FACILITY.toString());
             Facilities.Types t = Facilities.Types.valueOf(facility);
+            ArrayList<Pair<Time, Time>> bookings = facilities.queryAvailability(t);
 
+            String reply = parseBookingsToString(bookings);
+            BytePacker replyMessageClient = server.generateReply(status, messageId, reply);
 
-            // incomplete
-//            HashMap<String, Object> o = (HashMap<String, Object>) req.packet.get(Method.PAYLOAD);
-//            Facilities.Types t = (Facilities.Types) o.get(Method.Query.FACILITY.toString());
-//            HashMap<UUID, Pair<Time, Time>> bookings = facilities.queryAvailability(t);
-//            server.send(req.address, main.common.Util.putInHashMapPacket(Method.Methods.QUERY, bookings));
-//            System.out.println("Query sent to main.client.");
+            server.send(new InetSocketAddress(clientAddr, clientPort), replyMessageClient);
+            System.out.println("Query sent to main.client.");
+
         }
 
         else if (serviceRequested == Method.ADD) {
@@ -211,7 +208,7 @@ public class Handler {
             Pair<String, Facilities.Types> msg = facilities.extendBooking(uuid, extendTime);
             String replyMsg;
 
-            if (msg.getValue() == null){
+            if (((Pair) msg).getValue() == null){
                 replyMsg = "Extension failed";
             } else {
                 replyMsg = "UUID: "+msg.getKey()+ " extend " + msg.getValue() + " booking success!";
@@ -243,7 +240,7 @@ public class Handler {
             Pair<String, Facilities.Types> msg = facilities.cancelBooking(uuid);
             String replyMsg;
 
-            if (msg.getValue() == null){c
+            if (msg.getValue() == null){
                 replyMsg = "Extension failed";
             } else {
                 replyMsg = "UUID: "+msg.getKey()+ " cancel " + msg.getValue() + " booking success!";
@@ -277,4 +274,26 @@ public class Handler {
 //            server.send(n.getInetSocketAddress(), main.common.Util.putInHashMapPacket(Method.Methods.MONITOR, bookings));
 //        }
 //    }
+
+    private static String parseBookingsToString(ArrayList<Pair<Time, Time>> bookings) {
+        StringBuilder sb = new StringBuilder();
+        for (Pair<Time, Time> b : bookings) {
+            Time start = b.getKey();
+            Time end = b.getValue();
+            sb.append(start.getDayAsName());
+            sb.append("/");
+            sb.append(start.hour);
+            sb.append("/");
+            sb.append(start.minute);
+            sb.append("-");
+            sb.append(end.getDayAsName());
+            sb.append("/");
+            sb.append(end.hour);
+            sb.append("/");
+            sb.append(end.minute);
+            /** delimiter **/
+            sb.append(Method.DELIMITER);
+        }
+        return sb.toString();
+    }
 }

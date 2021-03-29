@@ -22,7 +22,6 @@ public class Time implements Serializable {
     public int hour;
     public int minute;
 
-
     public Time (int dayChoice, int hour, int minute) {
 //        this.day = Days.values()[dayChoice];
         this.day = dayChoice;
@@ -110,5 +109,9 @@ public class Time implements Serializable {
             return null;
         }
         return new Time(day, hour, min);
+    }
+
+    public String getDayAsName() {
+        return Days.values()[this.day].toString();
     }
 }

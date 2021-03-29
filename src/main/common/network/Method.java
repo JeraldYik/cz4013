@@ -13,6 +13,8 @@ public class Method {
     public static int CANCEL = 5;
     public static int EXTEND = 6;
 
+    public static String DELIMITER = "#";
+
     public enum Query {
         FACILITY
     }
