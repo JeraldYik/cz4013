@@ -40,7 +40,7 @@ public class Handler {
 
             HashMap<String, Object> o = (HashMap<String, Object>) req.packet.get(Method.PAYLOAD);
             Facilities.Types t = (Facilities.Types) o.get(Method.Query.FACILITY.toString());
-            HashMap<UUID, Pair<Time, Time>> bookings = facilities.queryAvailability(t);
+            ArrayList<Pair<Time, Time>> bookings = facilities.queryAvailability(t);
             server.send(req.address, main.common.Util.putInHashMapPacket(Method.Methods.QUERY, bookings));
             System.out.println("Query sent to main.client.");
         }
@@ -82,8 +82,6 @@ public class Handler {
             Facilities.Types t = (Facilities.Types) o.get(Method.Monitor.FACILITY.toString());
             int monitorInterval = (Integer) o.get(Method.Monitor.INTERVAL.toString());
 
-            System.out.print("In Monitor method: ");
-            System.out.println(req.address);
             LocalDateTime end = facilities.monitorAvailability(t, monitorInterval, req.address);
             String msg = "Monitoring " + t.toString() + " until " + end.toString();
             server.send(req.address, main.common.Util.putInHashMapPacket(Method.Methods.MONITOR, msg));
@@ -111,9 +109,11 @@ public class Handler {
             HashMap<String, Object> o = (HashMap<String, Object>) req.packet.get(Method.PAYLOAD);
             String uuid = (String) o.get(Method.Cancel.UUID.toString());
 
-            String msg = facilities.cancelBooking(uuid);
-            server.send(req.address, main.common.Util.putInHashMapPacket(Method.Methods.CANCEL, msg));
+            Pair<String, Facilities.Types> msg = facilities.cancelBooking(uuid);
+            server.send(req.address, main.common.Util.putInHashMapPacket(Method.Methods.CANCEL, msg.getKey()));
             System.out.println(("Query sent to main.client."));
+
+            callback(facilities, msg.getValue(), server);
         }
 
         else {
@@ -124,18 +124,10 @@ public class Handler {
     }
 
     private static void callback(Facilities facilities, Facilities.Types t, Transport server) {
-        System.out.println("t: " + t.toString());
         if (t == null) return;
         ArrayList<NodeInformation> clientsToUpdate = facilities.clientsToUpdate(t);
-        System.out.print("clientsToUpdate ");
-        System.out.println(clientsToUpdate);
-        System.out.print("facilities.monitors ");
-        System.out.println(facilities.getMonitors());
-        while (!clientsToUpdate.isEmpty()) {
-            NodeInformation n = clientsToUpdate.remove(clientsToUpdate.size() - 1);
-            HashMap<UUID, Pair<Time, Time>> bookings = facilities.queryAvailability(t);
-            System.out.print("in callback ");
-            System.out.println(n.getInetSocketAddress());
+        for (NodeInformation n : clientsToUpdate) {
+            ArrayList<Pair<Time, Time>> bookings = facilities.queryAvailability(t);
             server.send(n.getInetSocketAddress(), main.common.Util.putInHashMapPacket(Method.Methods.MONITOR, bookings));
         }
     }
