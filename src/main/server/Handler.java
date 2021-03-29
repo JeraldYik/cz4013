@@ -67,27 +67,29 @@ public class Handler {
 
         }
 
-//        else if (serviceRequested == (Method.QUERY)) {
-//
-//            ByteUnpacker unpacker = new ByteUnpacker.Builder()
-//                    .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
-//                    .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
-//                    .setType("facility", ByteUnpacker.TYPE.STRING)
-//                    .build();
-//
-//            ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
-//
-//            String facility = unpackedMsg.getString("facility");
-//            Facilities.Types t = Facilities.Types.valueOf(facility);
-//
-//
-//            // incomplete
-//            HashMap<String, Object> o = (HashMap<String, Object>) req.packet.get(Method.PAYLOAD);
-//            Facilities.Types t = (Facilities.Types) o.get(Method.Query.FACILITY.toString());
-//            HashMap<UUID, Pair<Time, Time>> bookings = facilities.queryAvailability(t);
-//            server.send(req.address, main.common.Util.putInHashMapPacket(Method.Methods.QUERY, bookings));
-//            System.out.println("Query sent to main.client.");
-//        }
+        else if (serviceRequested == (Method.QUERY)) {
+
+            ByteUnpacker unpacker = new ByteUnpacker.Builder()
+                    .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
+                    .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
+                    .setType(Method.Query.FACILITY.toString(), ByteUnpacker.TYPE.STRING)
+                    .build();
+
+            ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
+
+            OneByteInt status = new OneByteInt(0);
+            int messageId = unpackedMsg.getInteger(MESSAGE_ID);
+
+            String facility = unpackedMsg.getString(Method.Query.FACILITY.toString());
+            Facilities.Types t = Facilities.Types.valueOf(facility);
+            ArrayList<Pair<Time, Time>> bookings = facilities.queryAvailability(t);
+
+            String reply = parseBookingsToString(bookings);
+            BytePacker replyMessageClient = server.generateReply(status, messageId, reply);
+
+            server.send(new InetSocketAddress(clientAddr, clientPort), replyMessageClient);
+            System.out.println("Query sent to main.client.");
+        }
 
         else if (serviceRequested == Method.ADD) {
 
@@ -257,4 +259,26 @@ public class Handler {
 //            server.send(n.getInetSocketAddress(), main.common.Util.putInHashMapPacket(Method.Methods.MONITOR, bookings));
 //        }
 //    }
+
+    private static String parseBookingsToString(ArrayList<Pair<Time, Time>> bookings) {
+        StringBuilder sb = new StringBuilder();
+        for (Pair<Time, Time> b : bookings) {
+            Time start = b.getKey();
+            Time end = b.getValue();
+            sb.append(start.getDayAsName());
+            sb.append("/");
+            sb.append(start.hour);
+            sb.append("/");
+            sb.append(start.minute);
+            sb.append("-");
+            sb.append(end.getDayAsName());
+            sb.append("/");
+            sb.append(end.hour);
+            sb.append("/");
+            sb.append(end.minute);
+            /** delimiter **/
+            sb.append(Method.DELIMITER);
+        }
+        return sb.toString();
+    }
 }

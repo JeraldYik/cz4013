@@ -111,4 +111,8 @@ public class Time implements Serializable {
         }
         return new Time(day, hour, min);
     }
+
+    public String getDayAsName() {
+        return Days.values()[this.day].toString();
+    }
 }
