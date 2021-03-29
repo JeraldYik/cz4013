@@ -72,7 +72,7 @@ public class ClientMain {
                     boolean quit = false;
                     System.out.println(TEST);
                     while(!quit) {
-                        int testChoice = safeReadInt("Choose your function: ");
+                        int testChoice = safeReadInt("Choose your function (Enter '5' for menu): ");
                         switch (testChoice) {
                             case 1:
                                 client.sendDuplicatePingsToServer();

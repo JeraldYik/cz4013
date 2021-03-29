@@ -43,7 +43,7 @@ public class Client {
     protected static final String REPLY = "REPLY";
 
 
-    public Client(Transport transport, InetSocketAddress serverAddr, double failureProbability){
+    public Client(Transport transport, InetSocketAddress serverAddr, double failureProbability) {
         this.transport = transport;
         this.serverAddr = serverAddr;
         this.failureProbability = failureProbability;
@@ -51,11 +51,11 @@ public class Client {
         this.random = new Random();
     }
 
-    public int getMessageId(){
+    public int getMessageId() {
         return message_id++;
     }
 
-    public void setMessageId(int msg_id){
+    public void setMessageId(int msg_id) {
         this.message_id = msg_id;
     }
 
@@ -169,7 +169,7 @@ public class Client {
                     }
                 }
 
-                if(transport.checkStatus(unpackedMsg)) {
+                if (transport.checkStatus(unpackedMsg)) {
                     String response = unpackedMsg.getString(REPLY);
                     this.printBookings(response, facility);
                 } else {
@@ -181,7 +181,7 @@ public class Client {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        } catch(RuntimeException e) {
+        } catch (RuntimeException e) {
             System.out.println("Client.queryAvailability - Runtime Exception! " + e.getMessage());
         }
     }
@@ -202,7 +202,7 @@ public class Client {
         while (!Time.compare(start, end)) {
             System.out.println("End time must be larger than start time!");
             System.out.println("Start time: " + start);
-            System.out.println("Invalid end time entered: " + end  + "\n");
+            System.out.println("Invalid end time entered: " + end + "\n");
             end = getTime("Please enter a larger end time: ");
         }
         startDay = start.day;
@@ -271,7 +271,7 @@ public class Client {
 
             try {
                 ByteUnpacker.UnpackedMsg unpackedMsg;
-                while(true) {
+                while (true) {
                     if (this.random.nextDouble() >= failureProbability) {
                         unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
                         break;
@@ -282,7 +282,7 @@ public class Client {
                     }
                 }
 
-                if(transport.checkStatus(unpackedMsg)) {
+                if (transport.checkStatus(unpackedMsg)) {
                     String reply = unpackedMsg.getString(REPLY);
                     System.out.println(reply);
                 } else {
@@ -295,7 +295,7 @@ public class Client {
                 e.printStackTrace();
             }
 
-        } catch(RuntimeException e) {
+        } catch (RuntimeException e) {
             System.out.println("Client.addBooking - Runtime Exception! " + e.getMessage());
         }
     }
@@ -304,11 +304,13 @@ public class Client {
 
         UUID uuid;
 
-        while(true) {
+        while (true) {
             try {
                 uuid = UUID.fromString(readLine("Please enter the confirmation ID of the booking: "));
                 break;
-            } catch (IllegalArgumentException e) {System.out.println("Please enter a valid confirmation ID!");}
+            } catch (IllegalArgumentException e) {
+                System.out.println("Please enter a valid confirmation ID!");
+            }
         }
         int offset = safeReadInt("Please enter the offset desired for this booking in minutes (negative for advancement, positive for postponement)\n(1 => 1min, 60 => 1hour, 3600 => 1 day): ");
 
@@ -336,7 +338,7 @@ public class Client {
                     }
                 }
 
-                if(transport.checkStatus(unpackedMsg)) {
+                if (transport.checkStatus(unpackedMsg)) {
                     String reply = unpackedMsg.getString(REPLY);
                     System.out.println("Response from server: " + reply);
                 } else {
@@ -349,7 +351,7 @@ public class Client {
                 e.printStackTrace();
             }
 
-        } catch(RuntimeException e) {
+        } catch (RuntimeException e) {
             System.out.println("Client.changeBooking - Runtime Exception! " + e.getMessage());
         }
     }
@@ -426,7 +428,7 @@ public class Client {
 
                 try {
                     ByteUnpacker.UnpackedMsg unpackedMsg = transport.setNonZeroTimeoutReceivalProcedure(remainingTimeout, serverAddr, packer, message_id);
-                    if(transport.checkStatus(unpackedMsg)) {
+                    if (transport.checkStatus(unpackedMsg)) {
                         String reply = unpackedMsg.getString(REPLY);
                         /** Do check for monitor ping response, or actual updates on monitoring **/
 //                        if () {
@@ -457,11 +459,13 @@ public class Client {
     public void cancelBooking() {
         UUID uuid;
 
-        while(true) {
+        while (true) {
             try {
                 uuid = UUID.fromString(readLine("Please enter the confirmation ID of the booking: "));
                 break;
-            } catch (IllegalArgumentException e) {System.out.println("Please enter a valid booking UUID!");}
+            } catch (IllegalArgumentException e) {
+                System.out.println("Please enter a valid booking UUID!");
+            }
         }
 
         try {
@@ -479,7 +483,7 @@ public class Client {
             try {
                 ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
 
-                if(transport.checkStatus(unpackedMsg)) {
+                if (transport.checkStatus(unpackedMsg)) {
                     String reply = unpackedMsg.getString(REPLY);
                     System.out.println("Response from server: " + reply);
                 } else {
@@ -498,11 +502,13 @@ public class Client {
     // a non-idempotent operation
     public void extendBooking() {
         UUID uuid;
-        while(true) {
+        while (true) {
             try {
                 uuid = UUID.fromString(readLine("Please enter the confirmation ID of the booking: "));
                 break;
-            } catch (IllegalArgumentException e) {System.out.println("Please enter a valid booking UUID!");}
+            } catch (IllegalArgumentException e) {
+                System.out.println("Please enter a valid booking UUID!");
+            }
         }
         double extend = safeReadDouble("Please enter the extension desired for this booking in hours (30-minute block)\n(i.e. 30-minute => 0.5, 2-hours => 2): ");
         while (extend <= 0 || extend % 0.5 != 0.0) {
@@ -526,7 +532,7 @@ public class Client {
             try {
                 ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
 
-                if(transport.checkStatus(unpackedMsg)) {
+                if (transport.checkStatus(unpackedMsg)) {
                     String reply = unpackedMsg.getString(REPLY);
                     System.out.println("Response from server: " + reply);
                 } else {
@@ -538,7 +544,7 @@ public class Client {
 
             }
 
-        } catch(RuntimeException e) {
+        } catch (RuntimeException e) {
             System.out.println("Client.extendBooking - Runtime Exception! " + e.getMessage());
         }
     }
@@ -573,9 +579,9 @@ public class Client {
         } else {
             System.out.println("For " + t.toString() + ":");
             String[] bookings = response.split(Method.DELIMITER);
-            for (int bookingCount=1; bookingCount <= bookings.length; bookingCount++) {
+            for (int bookingCount = 1; bookingCount <= bookings.length; bookingCount++) {
                 System.out.format("---------------Booking %d---------------\n", bookingCount);
-                String[] startAndEnd = bookings[bookingCount-1].split("-");
+                String[] startAndEnd = bookings[bookingCount - 1].split("-");
 
                 System.out.println("Start Time: " + startAndEnd[0]);
                 System.out.println("End Time: " + startAndEnd[1]);
@@ -643,7 +649,7 @@ public class Client {
 
             try {
                 ByteUnpacker.UnpackedMsg unpackedMsg = null;
-                for(int i=1;i<=5;i++) {
+                for (int i = 1; i <= 5; i++) {
                     this.transport.send(this.serverAddr, packer);
                     System.out.println("message sent to server");
                     while (true) {
@@ -677,7 +683,51 @@ public class Client {
 
     //TODO: Implement test statements
 
-    public void sendDuplicateExtendsToServer() {}
+    public void sendDuplicateExtendsToServer() {
+    }
 
-    public void sendDuplicateCancelsToServer() {}
+    public void sendDuplicateCancelsToServer() {
+        UUID uuid;
+
+        while (true) {
+            try {
+                uuid = UUID.fromString(readLine("Please enter the confirmation ID of the booking: "));
+                break;
+            } catch (IllegalArgumentException e) {
+                System.out.println("Please enter a valid booking UUID!");
+            }
+        }
+
+        try {
+            int message_id = this.getMessageId();
+
+            BytePacker packer = new BytePacker.Builder()
+                    .setProperty(SERVICE_ID, new OneByteInt(Method.CANCEL))
+                    .setProperty(MESSAGE_ID, message_id)
+                    .setProperty(Method.Cancel.UUID.toString(), uuid.toString())
+                    .build();
+
+            try {
+                for (int i = 1; i <= 5; i++) {
+                    this.transport.send(this.serverAddr, packer);
+                    System.out.println("message sent to server");
+
+                    ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+
+                    if (transport.checkStatus(unpackedMsg)) {
+                        String reply = unpackedMsg.getString(REPLY);
+                        System.out.println("Response from server: " + reply);
+                    } else {
+                        System.out.println("Failed to cancel booking");
+                    }
+                }
+            } catch (RuntimeException e) {
+                System.out.println(("Client.cancelBooking - Runtime Exception! " + e.getMessage()));
+            } catch (SocketTimeoutException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } catch (RuntimeException e) { e.printStackTrace(); }
+    }
 }
