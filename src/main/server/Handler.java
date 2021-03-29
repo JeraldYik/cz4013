@@ -23,10 +23,10 @@ import java.util.UUID;
 
 public class Handler {
 
-    protected static final String STATUS = "status";
-    protected static final String SERVICE_ID = "serviceId";
-    protected static final String MESSAGE_ID = "messageId";
-    protected static final String REPLY = "reply";
+    protected static final String STATUS = "STATUS";
+    protected static final String SERVICE_ID = "SERVICEID";
+    protected static final String MESSAGE_ID = "MESSAGEID";
+    protected static final String REPLY = "REPLY";
 
     public static void handle(Transport server, Facilities facilities, DatagramPacket p) {
         facilities.deregister();
@@ -46,12 +46,12 @@ public class Handler {
             ByteUnpacker unpacker = new ByteUnpacker.Builder()
                     .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
                     .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
-                    .setType("pingMessage", ByteUnpacker.TYPE.STRING)
+                    .setType(Method.Ping.PING.toString(), ByteUnpacker.TYPE.STRING)
                     .build();
 
             ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
 
-            String pingMessage = unpackedMsg.getString("pingMessage");
+            String pingMessage = unpackedMsg.getString(Method.Ping.PING.toString());
             int messageId = unpackedMsg.getInteger(MESSAGE_ID);
 
             System.out.println("Received ping from client: " + pingMessage);
@@ -97,24 +97,24 @@ public class Handler {
             ByteUnpacker unpacker = new ByteUnpacker.Builder()
                      .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
                      .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
-                     .setType("startDay", ByteUnpacker.TYPE.INTEGER)
-                     .setType("startHour", ByteUnpacker.TYPE.INTEGER)
-                     .setType("startMin", ByteUnpacker.TYPE.INTEGER)
-                     .setType("endDay", ByteUnpacker.TYPE.INTEGER)
-                     .setType("endHour", ByteUnpacker.TYPE.INTEGER)
-                     .setType("endMin", ByteUnpacker.TYPE.INTEGER)
-                     .setType("facility", ByteUnpacker.TYPE.STRING)
+                     .setType(Method.Add.STARTDAY.toString(), ByteUnpacker.TYPE.INTEGER)
+                     .setType(Method.Add.STARTHOUR.toString(), ByteUnpacker.TYPE.INTEGER)
+                     .setType(Method.Add.STARTMIN.toString(), ByteUnpacker.TYPE.INTEGER)
+                     .setType(Method.Add.ENDDAY.toString(), ByteUnpacker.TYPE.INTEGER)
+                     .setType(Method.Add.ENDHOUR.toString(), ByteUnpacker.TYPE.INTEGER)
+                     .setType(Method.Add.ENDMIN.toString(), ByteUnpacker.TYPE.INTEGER)
+                     .setType(Method.Add.FACILITY.toString(), ByteUnpacker.TYPE.STRING)
                      .build();
 
             ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
 
-            int startDay = unpackedMsg.getInteger("startDay");
-            int startHour = unpackedMsg.getInteger("startHour");
-            int startMin = unpackedMsg.getInteger("startMin");
-            int endDay = unpackedMsg.getInteger("endDay");
-            int endHour = unpackedMsg.getInteger("endHour");
-            int endMin = unpackedMsg.getInteger("endMin");
-            String facility = unpackedMsg.getString("facility");
+            int startDay = unpackedMsg.getInteger(Method.Add.STARTDAY.toString());
+            int startHour = unpackedMsg.getInteger(Method.Add.STARTHOUR.toString());
+            int startMin = unpackedMsg.getInteger(Method.Add.STARTMIN.toString());
+            int endDay = unpackedMsg.getInteger(Method.Add.ENDDAY.toString());
+            int endHour = unpackedMsg.getInteger(Method.Add.ENDHOUR.toString());
+            int endMin = unpackedMsg.getInteger(Method.Add.ENDMIN.toString());
+            String facility = unpackedMsg.getString(Method.Add.FACILITY.toString());
 
             Time start = new Time(startDay, startHour, startMin);
             Time end = new Time(endDay, endHour, endMin);
@@ -152,14 +152,14 @@ public class Handler {
             ByteUnpacker unpacker = new ByteUnpacker.Builder()
                     .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
                     .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
-                    .setType("monitorInterval", ByteUnpacker.TYPE.INTEGER)
-                    .setType("facility", ByteUnpacker.TYPE.STRING)
+                    .setType(Method.Monitor.INTERVAL.toString(), ByteUnpacker.TYPE.INTEGER)
+                    .setType(Method.Monitor.FACILITY.toString(), ByteUnpacker.TYPE.STRING)
                     .build();
 
             ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
 
-            int monitorInterval = unpackedMsg.getInteger("monitorInterval");
-            String facility = unpackedMsg.getString("facility");
+            int monitorInterval = unpackedMsg.getInteger(Method.Monitor.INTERVAL.toString());
+            String facility = unpackedMsg.getString(Method.Monitor.FACILITY.toString());
             Facilities.Types t = Facilities.Types.valueOf(facility);
             String clientAddress = clientAddr.toString();
 
@@ -182,14 +182,14 @@ public class Handler {
             ByteUnpacker unpacker = new ByteUnpacker.Builder()
                     .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
                     .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
-                    .setType("uuid", ByteUnpacker.TYPE.STRING)
-                    .setType("extendTime", ByteUnpacker.TYPE.DOUBLE)
+                    .setType(Method.Extend.UUID.toString(), ByteUnpacker.TYPE.STRING)
+                    .setType(Method.Extend.EXTEND.toString(), ByteUnpacker.TYPE.DOUBLE)
                     .build();
 
             ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
 
-            String uuid = unpackedMsg.getString("uuid");
-            double extendTime = unpackedMsg.getDouble("extendTime");
+            String uuid = unpackedMsg.getString(Method.Extend.UUID.toString());
+            double extendTime = unpackedMsg.getDouble(Method.Extend.EXTEND.toString());
             Pair<String, Facilities.Types> msg = facilities.extendBooking(uuid, extendTime);
             String replyMsg = "";
 
@@ -216,12 +216,12 @@ public class Handler {
             ByteUnpacker unpacker = new ByteUnpacker.Builder()
                     .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
                     .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
-                    .setType("uuid", ByteUnpacker.TYPE.STRING)
+                    .setType(Method.Cancel.UUID.toString(), ByteUnpacker.TYPE.STRING)
                     .build();
 
             ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
 
-            String uuid = unpackedMsg.getString("uuid");
+            String uuid = unpackedMsg.getString(Method.Cancel.UUID.toString());
             Pair<String, Facilities.Types> msg = facilities.cancelBooking(uuid);
             String replyMsg = "";
 
