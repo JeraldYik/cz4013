@@ -14,7 +14,7 @@ public class Method {
     public static String METHOD = "method";
     public static String PAYLOAD = "payload";
 
-    public static int PING = 9;
+    public static int PING = 0;
     public static int QUERY = 1;
     public static int ADD = 2;
     public static int CHANGE = 3;
