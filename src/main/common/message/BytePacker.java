@@ -44,7 +44,7 @@ public class BytePacker {
                 size += 4;
             } else if (value instanceof String) {
                 size += 4 + ((String) value).length();
-            } else if (value instanceof Long) {
+            } else if (value instanceof Double) {
                 size += 8;
             } else if (value instanceof byte[]) {
                 size += 4 + ((byte[]) value).length;

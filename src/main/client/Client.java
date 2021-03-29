@@ -5,21 +5,17 @@ import main.common.facility.Facilities;
 import main.common.facility.Time;
 import main.common.message.BytePacker;
 import main.common.message.ByteUnpacker;
-
 import main.common.message.OneByteInt;
 import main.common.network.Method;
-
 import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
 import java.time.temporal.ChronoUnit;
 import main.common.network.*;
-
 import java.lang.invoke.MethodHandle;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
-
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -28,11 +24,8 @@ import java.util.SortedSet;
 import java.util.UUID;
 import java.util.Arrays;
 import java.util.Random;
-
 import main.common.network.*;
-
 import javax.xml.crypto.Data;
-
 import static main.client.Util.*;
 
 public class Client {
@@ -78,27 +71,29 @@ public class Client {
                     .setProperty(Method.Ping.PING.toString(), testmsg)
                     .build();
 
-            System.out.println("testmsg: " + testmsg);
-
             try {
-                ByteUnpacker.UnpackedMsg unpackedMsg;
-                this.transport.send(this.serverAddr, packer);
-                System.out.println("message sent to server");
-                while(true) {
-                    if (this.random.nextDouble() >= failureProbability) {
-                        unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
-                        break;
-                    } else {
-                        System.out.println("Simulating packet loss");
-                        Thread.sleep(2000);
-                        this.transport.send(this.serverAddr, packer);
+                ByteUnpacker.UnpackedMsg unpackedMsg = null;
+                for(int i=1;i<=5;i++) {
+                    this.transport.send(this.serverAddr, packer);
+                    System.out.println("message sent to server");
+                    while (true) {
+                        if (this.random.nextDouble() >= failureProbability) {
+                            unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                            break;
+                        } else {
+                            System.out.println("Simulating packet loss");
+                            Thread.sleep(2000);
+                            this.transport.send(this.serverAddr, packer);
+                        }
                     }
-                }
-                if(transport.checkStatus(unpackedMsg)) {
-                    String reply = unpackedMsg.getString(REPLY);
-                    System.out.println("Response from server: " + reply);
-                } else {
-                    System.out.println("Failed to ping");
+                    System.out.println("Message count: " + i);
+                    if (transport.checkStatus(unpackedMsg)) {
+                        String reply = unpackedMsg.getString(REPLY);
+                        System.out.println("Response from server: " + reply);
+                    } else {
+                        System.out.println("Failed to ping");
+                    }
+                    Thread.sleep(2000);
                 }
             } catch (SocketTimeoutException e) {
                 System.out.print("Request timed out after 5 tries!");
