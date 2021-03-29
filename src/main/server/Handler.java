@@ -67,27 +67,27 @@ public class Handler {
 
         }
 
-//        else if (serviceRequested == (Method.QUERY)) {
-//
-//            ByteUnpacker unpacker = new ByteUnpacker.Builder()
-//                    .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
-//                    .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
-//                    .setType("facility", ByteUnpacker.TYPE.STRING)
-//                    .build();
-//
-//            ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
-//
-//            String facility = unpackedMsg.getString("facility");
-//            Facilities.Types t = Facilities.Types.valueOf(facility);
-//
-//
-//            // incomplete
+        else if (serviceRequested == (Method.QUERY)) {
+
+            ByteUnpacker unpacker = new ByteUnpacker.Builder()
+                    .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
+                    .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
+                    .setType(Method.Query.FACILITY.toString(), ByteUnpacker.TYPE.STRING)
+                    .build();
+
+            ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
+
+            String facility = unpackedMsg.getString(Method.Query.FACILITY.toString());
+            Facilities.Types t = Facilities.Types.valueOf(facility);
+
+
+            // incomplete
 //            HashMap<String, Object> o = (HashMap<String, Object>) req.packet.get(Method.PAYLOAD);
 //            Facilities.Types t = (Facilities.Types) o.get(Method.Query.FACILITY.toString());
 //            HashMap<UUID, Pair<Time, Time>> bookings = facilities.queryAvailability(t);
 //            server.send(req.address, main.common.Util.putInHashMapPacket(Method.Methods.QUERY, bookings));
 //            System.out.println("Query sent to main.client.");
-//        }
+        }
 
         else if (serviceRequested == Method.ADD) {
 
@@ -132,18 +132,38 @@ public class Handler {
 
         }
 
-//        else if (serviceRequested == (Method.CHANGE)) {
-//
-//
-//            HashMap<String, Object> o = (HashMap<String, Object>) req.packet.get(Method.PAYLOAD);
-//            String uuid = (String) o.get(Method.Change.UUID.toString());
-//            int offset = (Integer) o.get(Method.Change.OFFSET.toString());
-//            Pair<String, Facilities.Types> msg = facilities.changeBooking(uuid, offset);
-//            server.send(req.address, main.common.Util.putInHashMapPacket(Method.Methods.CHANGE, msg.getKey()));
-//            System.out.println("Query sent to main.client.");
-//
+        else if (serviceRequested == (Method.CHANGE)) {
+
+            ByteUnpacker unpacker = new ByteUnpacker.Builder()
+                    .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
+                    .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
+                    .setType(Method.Change.UUID.toString(), ByteUnpacker.TYPE.STRING)
+                    .setType(Method.Change.OFFSET.toString(), ByteUnpacker.TYPE.INTEGER)
+                    .build();
+
+            ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
+
+            String uuid = unpackedMsg.getString(Method.Change.UUID.toString());
+            int offset = unpackedMsg.getInteger(Method.Change.OFFSET.toString());
+            Pair<String, Facilities.Types> msg = facilities.changeBooking(uuid, offset);
+            String replyMsg;
+
+            if (msg.getValue() == null) {
+                replyMsg = "Change booking failed";
+            } else {
+                replyMsg = "UUID: " + msg.getKey() + " change " + msg.getValue() + " booking success!";
+            }
+
+            int messageId = unpackedMsg.getInteger(MESSAGE_ID);
+            OneByteInt status = new OneByteInt(0);
+
+            BytePacker replyMessageClient = server.generateReply(status, messageId, replyMsg);
+            server.send(new InetSocketAddress(clientAddr, clientPort), replyMessageClient);
+
+            System.out.println("Change response sent to main.client");
+
 //            callback(facilities, msg.getValue(), server);
-//        }
+        }
 
         else if (serviceRequested == (Method.MONITOR)) {
 
@@ -189,7 +209,7 @@ public class Handler {
             String uuid = unpackedMsg.getString(Method.Extend.UUID.toString());
             double extendTime = unpackedMsg.getDouble(Method.Extend.EXTEND.toString());
             Pair<String, Facilities.Types> msg = facilities.extendBooking(uuid, extendTime);
-            String replyMsg = "";
+            String replyMsg;
 
             if (msg.getValue() == null){
                 replyMsg = "Extension failed";
@@ -221,12 +241,12 @@ public class Handler {
 
             String uuid = unpackedMsg.getString(Method.Cancel.UUID.toString());
             Pair<String, Facilities.Types> msg = facilities.cancelBooking(uuid);
-            String replyMsg = "";
+            String replyMsg;
 
-            if (msg.getValue() == null){
+            if (msg.getValue() == null){c
                 replyMsg = "Extension failed";
             } else {
-                replyMsg = "UUID: "+msg.getKey()+ " cancel " + msg.getValue() + "booking success!";
+                replyMsg = "UUID: "+msg.getKey()+ " cancel " + msg.getValue() + " booking success!";
 
             }
 
