@@ -1,8 +1,6 @@
 package main.common.facility;
 
-import java.io.Serializable;
-
-public class Time implements Serializable {
+public class Time {
     /**
      * the availability of the facility over seven days of a week (the
      * time is to be represented in the form of day/hour/minute, where day is of enumerated

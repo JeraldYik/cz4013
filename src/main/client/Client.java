@@ -36,7 +36,7 @@ import static main.client.Util.*;
 
 public class Client {
 
-    private SocketAddress serverAddr;
+    private InetSocketAddress serverAddr;
     private final Transport transport;
     private int message_id;
 
@@ -46,7 +46,7 @@ public class Client {
     protected static final String REPLY = "REPLY";
 
 
-    public Client(Transport transport, SocketAddress serverAddr){
+    public Client(Transport transport, InetSocketAddress serverAddr){
         this.transport = transport;
         this.serverAddr = serverAddr;
         this.message_id = 0;
@@ -319,7 +319,7 @@ public class Client {
      */
     public void monitorAvailability() {
         boolean terminate = false;
-        String facility = "";
+        Facilities.Types facility = null;
         int monitorInterval = safeReadInt("Please enter your monitor interval in minutes\n(1 => 1min, 60 => 1hour, 3600 => 1 day): ");
 
         String MANUAL = "----------------------------------------------------------------\n" +
@@ -331,25 +331,24 @@ public class Client {
                 "0: Exit and perform another query\n";
         System.out.print(MANUAL);
 
-        Facilities.Types t = null;
         try {
             while (!terminate) {
                 int userChoice = safeReadInt("Your choice of facility: ");
                 switch (userChoice) {
                     case 1:
-                        facility = Facilities.Types.LT1.toString();
+                        facility = Facilities.Types.LT1;
                         terminate = true;
                         break;
                     case 2:
-                        facility = Facilities.Types.LT2.toString();
+                        facility = Facilities.Types.LT2;
                         terminate = true;
                         break;
                     case 3:
-                        facility = Facilities.Types.MR1.toString();
+                        facility = Facilities.Types.MR1;
                         terminate = true;
                         break;
                     case 4:
-                        facility = Facilities.Types.MR2.toString();
+                        facility = Facilities.Types.MR2;
                         terminate = true;
                         break;
                     case 0:
@@ -363,10 +362,10 @@ public class Client {
             int message_id = this.getMessageId();
 
             BytePacker packer = new BytePacker.Builder()
-                    .setProperty(SERVICE_ID, new OneByteInt(Method.EXTEND))
+                    .setProperty(SERVICE_ID, new OneByteInt(Method.MONITOR))
                     .setProperty(MESSAGE_ID, message_id)
                     .setProperty(Method.Monitor.INTERVAL.toString(), monitorInterval)
-                    .setProperty(Method.Monitor.FACILITY.toString(), facility)
+                    .setProperty(Method.Monitor.FACILITY.toString(), facility.toString())
                     .build();
 
             this.transport.send(serverAddr, packer);
@@ -384,14 +383,21 @@ public class Client {
                 int remainingTimeout = (int) ChronoUnit.MILLIS.between(now, end);
 
                 try {
-                    DatagramPacket p = this.transport.setNonZeroTimeoutAndReceive(remainingTimeout);
-                    ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                    ByteUnpacker.UnpackedMsg unpackedMsg = transport.setNonZeroTimeoutReceivalProcedure(remainingTimeout, serverAddr, packer, message_id);
                     if(transport.checkStatus(unpackedMsg)) {
                         String reply = unpackedMsg.getString(REPLY);
+                        /** Do check for monitor ping response, or actual updates on monitoring **/
+//                        if () {
+//
+//                        } else {
+//
+//                        }
                         System.out.println("Message received from server: " + reply);
                     } else {
-//                        printBookings((ArrayList<Pair<Time, Time>>) payloadFromServer, t);
+//                        System.out.println("Failed to query facility");
                     }
+//                    String response = unpackedMsg.getString(REPLY);
+//                    this.printBookings(response, facility);
 
                 } catch (IOException e) {
                     System.out.print(e);
