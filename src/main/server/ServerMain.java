@@ -9,8 +9,9 @@ import java.net.*;
 public class ServerMain {
     public static void main(String[] args) throws SocketException {
         String serverHost = "127.0.0.1";
-        int port = 49155;
-        boolean atMostOnce = true;
+        int port = 49152;
+//        boolean atMostOnce = true;
+        boolean atMostOnce = false;
 
         Transport server = new Transport(new DatagramSocket(new InetSocketAddress(serverHost, port)), 8192); // use CORBA Data Representation
         System.out.println("Listening on udp://" + serverHost + ":" + port);

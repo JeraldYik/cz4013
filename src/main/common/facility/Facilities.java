@@ -64,7 +64,7 @@ public class Facilities {
                 if (u.toString().equals(uuid)) t = entry.getKey();
             }
         }
-        if (t == null) return new Pair("Confirmation ID: " + uuid + " cannot be found.", null);
+        if (t == null) return new Pair("UUID: " + uuid + " cannot be found.", null);
         Pair<String, Boolean> result = this.availability.get(t).changeBooking(uuid, offset);
         return new Pair(result.getKey(), result.getValue() == null ? null : t);
     }
@@ -77,7 +77,7 @@ public class Facilities {
                 if (u.toString().equals(uuid)) t = entry.getKey();
             }
         }
-        if (t == null) return new Pair("Confirmation ID: " + uuid + " cannot be found.", null);
+        if (t == null) return new Pair("UUID: " + uuid + " cannot be found.", null);
         Pair<String, Boolean> result = this.availability.get(t).cancelBooking(uuid);
         return new Pair(result.getKey(), result.getValue() == null ? null : t);
     }

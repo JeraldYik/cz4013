@@ -147,12 +147,12 @@ public class DefaultHandler {
             String uuid = unpackedMsg.getString(Method.Change.UUID.toString());
             int offset = unpackedMsg.getInteger(Method.Change.OFFSET.toString());
             Pair<String, Facilities.Types> msg = facilities.changeBooking(uuid, offset);
-            String replyMsg;
 
-            if (msg.getValue() == null) {
-                replyMsg = "Change booking failed";
+            String replyMsg;
+            if (msg.getValue() == null){
+                replyMsg = msg.getKey();
             } else {
-                replyMsg = "UUID: " + msg.getKey() + " change " + msg.getValue() + " booking success!";
+                replyMsg = "UUID: " + uuid + ". " + msg.getValue().toString() + ". " + msg.getKey();
             }
 
             int messageId = unpackedMsg.getInteger(MESSAGE_ID);
@@ -209,13 +209,12 @@ public class DefaultHandler {
             String uuid = unpackedMsg.getString(Method.Extend.UUID.toString());
             double extendTime = unpackedMsg.getDouble(Method.Extend.EXTEND.toString());
             Pair<String, Facilities.Types> msg = facilities.extendBooking(uuid, extendTime);
+
             String replyMsg;
-
-            if (((Pair) msg).getValue() == null){
-                replyMsg = "Extension failed";
+            if (msg.getValue() == null){
+                replyMsg = msg.getKey();
             } else {
-                replyMsg = "UUID: "+msg.getKey()+ " extend " + msg.getValue() + " booking success!";
-
+                replyMsg = "UUID: " + uuid + ". " + msg.getValue().toString() + ". " + msg.getKey();
             }
 
             int messageId = unpackedMsg.getInteger(MESSAGE_ID);
@@ -241,13 +240,12 @@ public class DefaultHandler {
 
             String uuid = unpackedMsg.getString(Method.Cancel.UUID.toString());
             Pair<String, Facilities.Types> msg = facilities.cancelBooking(uuid);
+
             String replyMsg;
-
             if (msg.getValue() == null){
-                replyMsg = "Extension failed";
+                replyMsg = msg.getKey();
             } else {
-                replyMsg = "UUID: "+msg.getKey()+ " cancel " + msg.getValue() + " booking success!";
-
+                replyMsg = "UUID: " + uuid + ". " + msg.getValue().toString() + ". " + msg.getKey();
             }
 
             int messageId = unpackedMsg.getInteger(MESSAGE_ID);
