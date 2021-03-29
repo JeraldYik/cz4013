@@ -200,9 +200,6 @@ public class Client {
         System.out.println();
         System.out.println("Start time: " + start.toString());
         System.out.println("End time: " + end.toString());
-//        HashMap<String, Object> payload = new HashMap<>();
-//        payload.put(Method.Add.START.toString(), start);
-//        payload.put(Method.Add.END.toString(), end);
 
         String MANUAL = "Please choose a facility by typing [1-4]:\n" +
                 "1: LT1\n" +
@@ -264,7 +261,7 @@ public class Client {
 
                 if(transport.checkStatus(unpackedMsg)) {
                     String reply = unpackedMsg.getString(REPLY);
-                    System.out.println("Response from server: " + reply);
+                    System.out.println("UUID of booking: " + reply);
                 } else {
                     System.out.println("Failed to add booking");
                 }

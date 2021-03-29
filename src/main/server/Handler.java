@@ -71,18 +71,46 @@ public class Handler {
 //            System.out.println("Query sent to main.client.");
 //        }
 //
-//        else if (serviceRequested == (Method.ADD)) {
-//            System.out.println("Query received from main.client: ");
-//            System.out.println(req.packet);
-//
-//            HashMap<String, Object> o = (HashMap<String, Object>) req.packet.get(Method.PAYLOAD);
-//            Facilities.Types t = (Facilities.Types) o.get(Method.Add.FACILITY.toString());
-//            Time start = (Time) o.get(Method.Add.START.toString());
-//            Time end = (Time) o.get(Method.Add.END.toString());
-//            String uuid = facilities.addBooking(t, start, end);
-//            server.send(req.address, main.common.Util.putInHashMapPacket(Method.Methods.ADD, uuid));
-//            System.out.println("Query sent to main.client.");
-//        }
+        else if (serviceRequested == Method.ADD) {
+
+            // unpack data
+            ByteUnpacker unpacker = new ByteUnpacker.Builder()
+                     .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
+                     .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
+                     .setType("startDay", ByteUnpacker.TYPE.INTEGER)
+                     .setType("startHour", ByteUnpacker.TYPE.INTEGER)
+                     .setType("startMin", ByteUnpacker.TYPE.INTEGER)
+                     .setType("endDay", ByteUnpacker.TYPE.INTEGER)
+                     .setType("endHour", ByteUnpacker.TYPE.INTEGER)
+                     .setType("endMin", ByteUnpacker.TYPE.INTEGER)
+                     .setType("facility", ByteUnpacker.TYPE.STRING)
+                     .build();
+
+            ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
+
+            int startDay = unpackedMsg.getInteger("startDay");
+            int startHour = unpackedMsg.getInteger("startHour");
+            int startMin = unpackedMsg.getInteger("startMin");
+            int endDay = unpackedMsg.getInteger("endDay");
+            int endHour = unpackedMsg.getInteger("endHour");
+            int endMin = unpackedMsg.getInteger("endMin");
+            String facility = unpackedMsg.getString("facility");
+
+            Time start = new Time(startDay, startHour, startMin);
+            Time end = new Time(endDay, endHour, endMin);
+            Facilities.Types t = Facilities.Types.valueOf(facility);
+
+            String uuid = facilities.addBooking(t, start, end);
+
+            int messageId = unpackedMsg.getInteger(MESSAGE_ID);
+            OneByteInt status = new OneByteInt(0);
+
+            BytePacker replyMessageClient = server.generateReply(status, messageId, uuid);
+
+            server.send(new InetSocketAddress(clientAddr, clientPort), replyMessageClient);
+
+            System.out.println("New booking uuid sent to main.client.");
+        }
 //
 //        else if (serviceRequested == (Method.CHANGE)) {
 //            System.out.println("Query received from main.client: ");

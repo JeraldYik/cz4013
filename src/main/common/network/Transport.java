@@ -58,7 +58,6 @@ public class Transport {
 
     // Serialise obj next time
     public void send(SocketAddress dest, BytePacker packer) {
-        System.out.println("Message sent to: " + dest);
         byte[] msg = packer.getByteArray();
         try {
             this.socket.send(new DatagramPacket(msg, msg.length, dest));
@@ -121,8 +120,6 @@ public class Transport {
 
     public final boolean checkMsgId(Integer messageId, ByteUnpacker.UnpackedMsg unpackedMsg) {
         Integer returnMessageId = unpackedMsg.getInteger(MESSAGE_ID);
-        System.out.println("returnMessageId: " + returnMessageId);
-        System.out.println("messageId: " + messageId);
         if (returnMessageId != null) {
             return messageId == returnMessageId;
         }
