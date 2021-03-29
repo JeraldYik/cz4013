@@ -51,19 +51,20 @@ public class AtMostOnceHandler {
 
             ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
 
-            String pingMessage = unpackedMsg.getString("pingMessage");
+            String pingMessage = unpackedMsg.getString(Method.Ping.PING.toString());
             int messageId = unpackedMsg.getInteger(MESSAGE_ID);
 
             System.out.println("Received ping from client: " + pingMessage);
+            System.out.println("messageId = " + messageId);
 
-            BytePacker historicalReply = client.searchForDuplicateRequest(messageId);
+            BytePacker historicalReply = client.findDuplicateMessage(messageId);
 
             if (historicalReply == null) {
                 OneByteInt status = new OneByteInt(0);
-                String reply = String.format("From main.server: ping received! Message: " + pingMessage);
+                String reply = String.format("From main.server: ping received!\nMessage: " + pingMessage);
                 BytePacker replyMessageClient = server.generateReply(status, messageId, reply);
                 client.addReplyEntry(messageId, replyMessageClient);
-                System.out.println("New reply recorded added for current client!");
+                System.out.println("New reply record added for current client!");
                 server.send(new InetSocketAddress(clientAddr, clientPort), replyMessageClient);
             }
             else {

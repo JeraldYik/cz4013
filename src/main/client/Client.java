@@ -78,27 +78,29 @@ public class Client {
                     .setProperty(Method.Ping.PING.toString(), testmsg)
                     .build();
 
-            System.out.println("testmsg: " + testmsg);
-
             try {
-                ByteUnpacker.UnpackedMsg unpackedMsg;
-                this.transport.send(this.serverAddr, packer);
-                System.out.println("message sent to server");
-                while(true) {
-                    if (this.random.nextDouble() >= failureProbability) {
-                        unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
-                        break;
-                    } else {
-                        System.out.println("Simulating packet loss");
-                        Thread.sleep(2000);
-                        this.transport.send(this.serverAddr, packer);
+                ByteUnpacker.UnpackedMsg unpackedMsg = null;
+                for(int i=1;i<=5;i++) {
+                    this.transport.send(this.serverAddr, packer);
+                    System.out.println("message sent to server");
+                    while (true) {
+                        if (this.random.nextDouble() >= failureProbability) {
+                            unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                            break;
+                        } else {
+                            System.out.println("Simulating packet loss");
+                            Thread.sleep(2000);
+                            this.transport.send(this.serverAddr, packer);
+                        }
                     }
-                }
-                if(transport.checkStatus(unpackedMsg)) {
-                    String reply = unpackedMsg.getString(REPLY);
-                    System.out.println("Response from server: " + reply);
-                } else {
-                    System.out.println("Failed to ping");
+                    System.out.println("Message count: " + i);
+                    if (transport.checkStatus(unpackedMsg)) {
+                        String reply = unpackedMsg.getString(REPLY);
+                        System.out.println("Response from server: " + reply);
+                    } else {
+                        System.out.println("Failed to ping");
+                    }
+                    Thread.sleep(2000);
                 }
             } catch (SocketTimeoutException e) {
                 System.out.print("Request timed out after 5 tries!");

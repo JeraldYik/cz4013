@@ -14,7 +14,7 @@ public class ClientMain {
         String clientAddr = "0.0.0.0";
         String serverAddr = "127.0.0.1";
         int serverPort = 49155;
-        int clientPort = 49154;
+        int clientPort = 49153;
 
         String MANUAL = "----------------------------------------------------------------\n" +
                 "Please choose a service by typing [1-]:\n" +

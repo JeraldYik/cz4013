@@ -24,8 +24,8 @@ public class DefaultHandler {
     protected static final String REPLY = "REPLY";
 
     public static void handle(Transport server, Facilities facilities, DatagramPacket p) {
-        facilities.deregister();
 
+        facilities.deregister();
         byte[] data = p.getData();
         InetAddress clientAddr = p.getAddress();
         int clientPort = p.getPort();
@@ -52,7 +52,7 @@ public class DefaultHandler {
             System.out.println("Received ping from client: " + pingMessage);
 
             OneByteInt status = new OneByteInt(0);
-            String reply = String.format("From main.server: ping received! Message: " + pingMessage);
+            String reply = String.format("From main.server: ping received!\nMessage: " + pingMessage);
             BytePacker replyMessageClient = server.generateReply(status, messageId, reply);
 
             server.send(new InetSocketAddress(clientAddr, clientPort), replyMessageClient);
