@@ -5,6 +5,7 @@ import main.common.network.Transport;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 
 import static main.client.Util.safeReadInt;
 
@@ -12,8 +13,8 @@ public class ClientMain {
     public static void main(String[] args) throws SocketException {
         String clientAddr = "0.0.0.0";
         String serverAddr = "127.0.0.1";
-        int serverPort = 49152;
-        int clientPort = 49153;
+        int serverPort = 49155;
+        int clientPort = 49154;
 
         String MANUAL = "----------------------------------------------------------------\n" +
                 "Please choose a service by typing [1-]:\n" +
@@ -45,9 +46,9 @@ public class ClientMain {
                 case 3:
                     client.changeBooking();
                     break;
-                case 4:
-                    client.monitorAvailability();
-                    break;
+//                case 4:
+//                    client.monitorAvailability();
+//                    break;
                 case 6:
                     client.extendBooking();
                     break;

@@ -1,263 +1,349 @@
 package main.client;
 
+//import javafx.util.Pair;
+import main.common.facility.Facilities;
 import main.common.facility.Time;
+import main.common.message.BytePacker;
+import main.common.message.ByteUnpacker;
+//import main.common.message.OneByteInt;
+import main.common.message.OneByteInt;
 import main.common.network.Method;
-import main.common.network.MethodNotFoundException;
-import main.common.network.RawMessage;
-import main.common.network.Transport;
-import main.common.message.*;
+//import main.common.network.MethodNotFoundException;
+//import main.common.network.RawMessage;
 
-import java.net.SocketAddress;
-import java.net.SocketTimeoutException;
+//import java.lang.invoke.MethodHandle;
+//import java.net.DatagramPacket;
 import javax.xml.crypto.Data;
 import java.io.IOException;
 import java.net.*;
+//import java.net.Socket;
+//import java.net.SocketAddress;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.SortedSet;
 import java.util.UUID;
 import java.util.Arrays;
+import java.util.Random;
+
+import main.common.network.*;
 
 import static main.client.Util.*;
 
 public class Client {
+
+    private SocketAddress serverAddr;
     private final Transport transport;
-    private final SocketAddress serverAddr;
-    private int messageId;
+    private int message_id;
+    private final double failureProbability = 0.6;
+    private final int timeout = 2000;
+    private Random random;
 
     protected static final String STATUS = "status";
     protected static final String SERVICE_ID = "serviceId";
     protected static final String MESSAGE_ID = "messageId";
     protected static final String REPLY = "reply";
 
-    public static final int BUFFER_SIZE = 2048;
 
-    public Client(Transport transport, SocketAddress serverAddr) {
+    public Client(Transport transport, SocketAddress serverAddr){
         this.transport = transport;
         this.serverAddr = serverAddr;
-        this.messageId = 0;
+//        this.socket = new DatagramSocket(); // Already initialised in Transport
+        this.message_id = 0;
+        this.random = new Random();
     }
 
-    public int getMessageId() {
-        return messageId;
+    public int getMessageId(){
+        return message_id++;
     }
 
-    public void setMessageId(int messageId) {
-        this.messageId = messageId;
+    public void setMessageId(int msg_id){
+        this.message_id = msg_id;
     }
+
 
     public void sendMessageToServer() {
-        boolean status = false;
-        int counter = 0;
-        String testmsg = readLine("Your message: ");
-        while(!status && counter<10) {
+        try {
+            String testmsg = readLine("Your message: ");
+
+            int message_id = this.getMessageId();
+
+            BytePacker packer = new BytePacker.Builder()
+                    .setProperty(SERVICE_ID, new OneByteInt(Method.PING))
+                    .setProperty(MESSAGE_ID, message_id)
+                    .setProperty("pingMessage", testmsg)
+                    .build();
+
             try {
-                this.transport.send(this.serverAddr, main.common.Util.putInHashMapPacket(Method.Methods.PING, testmsg));
-                System.out.println("Message sent to main.server.");
-
-                /** Add timeout here **/
-
-                RawMessage res = this.transport.receive();
-                status = true;
-                String method = (String) res.packet.get("method");
-                if (method.equals(Method.Methods.PING.toString())) {
-                    System.out.println("Message received from main.server: ");
-                    System.out.println(res.packet);
-                } else {
-                    throw new MethodNotFoundException("Client.sendMessageToServer - Unexpected Method! Expecting method 'PING'");
+                ByteUnpacker.UnpackedMsg unpackedMsg;
+                this.transport.send(this.serverAddr, packer);
+                System.out.println("message sent to server");
+                while(true) {
+                    if (this.random.nextDouble() >= failureProbability) {
+                        unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                        break;
+                    } else {
+                        System.out.println("Simulating packet loss");
+                        Thread.sleep(2000);
+                        this.transport.send(this.serverAddr, packer);
+                    }
                 }
-            } catch(RuntimeException e) {
-                System.out.println("Client.sendMessageToServer - " + e.getClass().toString() + ": " + e.getMessage());
+                if (transport.checkStatus(unpackedMsg)) {
+                    String reply = unpackedMsg.getString(REPLY);
+                    System.out.println("Response from server: " + reply);
+                } else {
+                    System.out.println("Failed to ping");
+                }
             } catch (SocketTimeoutException e) {
-                System.out.println("\nMessage timeout, trying again...\n");
+                System.out.print("Request timed out after 5 tries!");
+            } catch (IOException e) {
+                System.out.print(e);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-            counter++;
-        }
-        if(!status) {
-            System.out.println("Encountered error sending message!");
+        } catch (RuntimeException e) {
+            System.out.println("Client.sendMessageToServer - Runtime Exception! " + e.getMessage());
         }
     }
 
     public void queryAvailability() {
-//        String MANUAL = "----------------------------------------------------------------\n" +
-//                "Please choose a facility by typing [1-4]:\n" +
-//                "1: LT1\n" +
-//                "2: LT2\n" +
-//                "3: MR1\n" +
-//                "4: MR2\n" +
-//                "0: Exit and perform another query\n";
-//        System.out.print(MANUAL);
-//        boolean terminate = false;
-//        HashMap<String, Object> payload = new HashMap<>();
-//        try {
-//            while (!terminate) {
-//                int userChoice = safeReadInt("Your choice of facility: ");
-//                switch (userChoice) {
-//                    case 1:
-//                        payload.put(Method.Query.FACILITY.toString(),Facilities.Types.LT1);
-//                        this.transport.send(this.serverAddr, main.common.Util.putInHashMapPacket(Method.Methods.QUERY, payload));
-//                        terminate = true;
-//                        break;
-//                    case 2:
-//                        payload.put(Method.Query.FACILITY.toString(),Facilities.Types.LT2);
-//                        this.transport.send(this.serverAddr, main.common.Util.putInHashMapPacket(Method.Methods.QUERY, payload));
-//                        terminate = true;
-//                        break;
-//                    case 3:
-//                        payload.put(Method.Query.FACILITY.toString(),Facilities.Types.MR1);
-//                        this.transport.send(this.serverAddr, main.common.Util.putInHashMapPacket(Method.Methods.QUERY, payload));
-//                        terminate = true;
-//                        break;
-//                    case 4:
-//                        payload.put(Method.Query.FACILITY.toString(),Facilities.Types.MR2);
-//                        this.transport.send(this.serverAddr, main.common.Util.putInHashMapPacket(Method.Methods.QUERY, payload));
-//                        terminate = true;
-//                        break;
-//                    case 0:
-//                        return;
-//                    default:
-//                        System.out.println("Invalid choice!");
-//                        break;
-//                }
-//            }
-//            /** Add timeout here **/
-//            RawMessage res = this.transport.receive();
-//            String rcv_method = (String) res.packet.get(Method.METHOD);
-//            if (rcv_method.equals(Method.Methods.QUERY.toString())) {
-//                System.out.println("Message received from main.server: ");
-////                System.out.println(res.packet);
-//
-//                HashMap<UUID, Pair<Time, Time>> booking = (HashMap<UUID, Pair<Time, Time>>) res.packet.get(Method.PAYLOAD);
-//
-//                if (booking.isEmpty()) {
-//                    System.out.println("No active bookings");
-//                } else {
-//                    int bookingCount = 1;
-//                    for (HashMap.Entry<UUID, Pair<Time, Time>> entry : booking.entrySet()) {
-//                        System.out.format("---------------Booking %d---------------\n", bookingCount);
-//
-//                        /** We don't print the uuid here because it would allow anybody that queries the availability to view the uuid**/
-//                        Pair<Time, Time> timeTimePair = entry.getValue();
-//                        Time startTime = timeTimePair.getKey();
-//                        Time endTime = timeTimePair.getValue();
-//
-//                        System.out.println("Start Time: " + startTime);
-//                        System.out.println("End Time: " + endTime);
-//                        bookingCount += 1;
-//                    }
-//                }
-//
-//            } else {
-//                throw new MethodNotFoundException("Client.queryAvailability - Unexpected Method! Expecting method 'QUERY'");
-//            }
-//        } catch(RuntimeException e) {
-//            System.out.println("Client.queryAvailability - " + e.getClass().toString() + ": " + e.getMessage());
-//        }
+        String MANUAL = "----------------------------------------------------------------\n" +
+                "Please choose a facility by typing [1-4]:\n" +
+                "1: LT1\n" +
+                "2: LT2\n" +
+                "3: MR1\n" +
+                "4: MR2\n" +
+                "0: Exit and perform another query\n";
+        System.out.print(MANUAL);
+        boolean terminate = false;
+        String facility = "";
+        try {
+            while (!terminate) {
+                int userChoice = safeReadInt("Your choice of facility: ");
+                switch (userChoice) {
+                    case 1:
+                        facility = Facilities.Types.LT1.toString();
+                        terminate = true;
+                        break;
+                    case 2:
+                        facility = Facilities.Types.LT2.toString();
+                        terminate = true;
+                        break;
+                    case 3:
+                        facility = Facilities.Types.MR1.toString();
+                        terminate = true;
+                        break;
+                    case 4:
+                        facility = Facilities.Types.MR2.toString();
+                        terminate = true;
+                        break;
+                    case 0:
+                        return;
+                    default:
+                        System.out.println("Invalid choice!");
+                        break;
+                }
+            }
+            /** Add timeout here **/
+
+            int message_id = this.getMessageId();
+
+            BytePacker packer = new BytePacker.Builder()
+                    .setProperty(SERVICE_ID, new OneByteInt(Method.QUERY))
+                    .setProperty(MESSAGE_ID, message_id)
+                    .setProperty("facility", facility)
+                    .build();
+
+            transport.send(serverAddr, packer);
+
+            /** Add timeout here **/
+
+            try {
+                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+
+                if(transport.checkStatus(unpackedMsg)) {
+                    String reply = unpackedMsg.getString(REPLY);
+                    System.out.println("Response from server: " + reply);
+                } else {
+                    System.out.println("Failed to query facility");
+                }
+
+            } catch (IOException e) {
+                System.out.print(e.getMessage());
+            }
+        } catch(RuntimeException e) {
+            System.out.println("Client.queryAvailability - Runtime Exception! " + e.getMessage());
+        }
     }
 
     public void addBooking() {
-//        Time start = getTime("Please enter the start time.");
-//        Time end = getTime("Please enter the end time. (Must be later than the end time)");
-//        while (!Time.compare(start, end)) {
-//            System.out.println("End time must be larger than start time!");
-//            System.out.println("Start time: " + start);
-//            System.out.println("Invalid end time entered: " + end  + "\n");
-//            end = getTime("Please enter a larger end time: ");
-//        }
-//        System.out.println();
-//        System.out.println("Start time: " + start.toString());
-//        System.out.println("End time: " + end.toString());
+        String facility = "";
+        int startDay;
+        int startHr;
+        int startMin;
+        int endDay;
+        int endHr;
+        int endMin;
+
+        System.out.println("------------------------Adding Booking------------------------");
+        Time start = getTime("Please enter the start time.");
+
+        Time end = getTime("Please enter the end time. (Must be later than the end time)");
+        while (!Time.compare(start, end)) {
+            System.out.println("End time must be larger than start time!");
+            System.out.println("Start time: " + start);
+            System.out.println("Invalid end time entered: " + end  + "\n");
+            end = getTime("Please enter a larger end time: ");
+        }
+        startDay = start.day;
+        startHr = start.hour;
+        startMin = start.minute;
+
+        endDay = end.day;
+        endHr = end.hour;
+        endMin = end.minute;
+
+        System.out.println();
+        System.out.println("Start time: " + start.toString());
+        System.out.println("End time: " + end.toString());
 //        HashMap<String, Object> payload = new HashMap<>();
 //        payload.put(Method.Add.START.toString(), start);
 //        payload.put(Method.Add.END.toString(), end);
-//
-//        String MANUAL = "Please choose a facility by typing [1-4]:\n" +
-//                "1: LT1\n" +
-//                "2: LT2\n" +
-//                "3: MR1\n" +
-//                "4: MR2\n" +
-//                "0: Exit and perform another query\n";
-//        System.out.print(MANUAL);
-//        boolean terminate = false;
-//        try {
-//            while (!terminate) {
-//                int userChoice = safeReadInt("Your choice of facility: ");
-//                switch (userChoice) {
-//                    case 1:
-//                        payload.put(Method.Add.FACILITY.toString(), Facilities.Types.LT1);
-//                        terminate = true;
-//                        break;
-//                    case 2:
-//                        payload.put(Method.Add.FACILITY.toString(), Facilities.Types.LT2);
-//                        terminate = true;
-//                        break;
-//                    case 3:
-//                        payload.put(Method.Add.FACILITY.toString(), Facilities.Types.MR1);
-//                        terminate = true;
-//                        break;
-//                    case 4:
-//                        payload.put(Method.Add.FACILITY.toString(), Facilities.Types.MR2);
-//                        terminate = true;
-//                        break;
-//                    case 0:
-//                        return;
-//                    default:
-//                        System.out.println("Invalid choice!");
-//                        break;
-//                }
-//            }
-//            this.transport.send(this.serverAddr, main.common.Util.putInHashMapPacket(Method.Methods.ADD, payload));
-//
-//            /** Add timeout here **/
-//            RawMessage res = this.transport.receive();
-//            String rcv_method = (String) res.packet.get(Method.METHOD);
-//            if (rcv_method.equals(Method.Methods.ADD.toString())) {
-//                System.out.println("Message received from main.server: ");
-//                String uuid = (String) res.packet.get(Method.PAYLOAD);
-//                System.out.println("UUID of your booking: " + uuid);
-//            } else {
-//                throw new MethodNotFoundException("Client.addBooking - Unexpected Method! Expecting method 'ADD'");
-//            }
-//        } catch(RuntimeException | SocketException e) {
-//            System.out.println("Client.addBooking - " + e.getClass().toString() + ": " + e.getMessage());
-//        }
+
+        String MANUAL = "Please choose a facility by typing [1-4]:\n" +
+                "1: LT1\n" +
+                "2: LT2\n" +
+                "3: MR1\n" +
+                "4: MR2\n" +
+                "0: Exit and perform another query\n";
+        System.out.print(MANUAL);
+        boolean terminate = false;
+        try {
+            while (!terminate) {
+                int userChoice = safeReadInt("Your choice of facility: ");
+                switch (userChoice) {
+                    case 1:
+                        facility = Facilities.Types.LT1.toString();
+                        terminate = true;
+                        break;
+                    case 2:
+                        facility = Facilities.Types.LT2.toString();
+                        terminate = true;
+                        break;
+                    case 3:
+                        facility = Facilities.Types.MR1.toString();
+                        terminate = true;
+                        break;
+                    case 4:
+                        facility = Facilities.Types.MR2.toString();
+                        terminate = true;
+                        break;
+                    case 0:
+                        return;
+                    default:
+                        System.out.println("Invalid choice!");
+                        break;
+                }
+            }
+
+            int message_id = this.getMessageId();
+
+            BytePacker packer = new BytePacker.Builder()
+                    .setProperty(SERVICE_ID, new OneByteInt(Method.ADD))
+                    .setProperty(MESSAGE_ID, message_id)
+                    .setProperty("startDay", startDay)
+                    .setProperty("startHour", startHr)
+                    .setProperty("startMin", startMin)
+                    .setProperty("endDay", endDay)
+                    .setProperty("endHour", endHr)
+                    .setProperty("endMin", endMin)
+                    .setProperty("facility", facility)
+                    .build();
+
+            this.transport.send(serverAddr, packer);
+
+            try {
+                ByteUnpacker.UnpackedMsg unpackedMsg;
+                while(true) {
+                    if (this.random.nextDouble() >= failureProbability) {
+                        unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                        break;
+                    } else {
+                        System.out.println("Simulating packet loss");
+                        Thread.sleep(2000);
+                        this.transport.send(this.serverAddr, packer);
+                    }
+                }
+
+                if(transport.checkStatus(unpackedMsg)) {
+                    String reply = unpackedMsg.getString(REPLY);
+                    System.out.println("Response from server: " + reply);
+                } else {
+                    System.out.println("Failed to add booking");
+                }
+
+            } catch (IOException e) {
+                System.out.print(e);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        } catch(RuntimeException e) {
+            System.out.println("Client.addBooking - Runtime Exception! " + e.getMessage());
+        }
     }
 
     public void changeBooking() {
-//        String uuid = readLine("Please enter the confirmation ID of the booking: ");
-//        int offset = safeReadInt("Please enter the offset desired for this booking in minutes (negative for advancement, positive for postponement)\n(1 => 1min, 60 => 1hour, 3600 => 1 day): ");
-//        HashMap<String, Object> payload = new HashMap<>();
-//        payload.put(Method.Change.UUID.toString(), uuid);
-//        payload.put(Method.Change.OFFSET.toString(), offset);
-//
-//        try {
+        String uuid = readLine("Please enter the confirmation ID of the booking: ");
+        int offset = safeReadInt("Please enter the offset desired for this booking in minutes (negative for advancement, positive for postponement)\n(1 => 1min, 60 => 1hour, 3600 => 1 day): ");
+        HashMap<String, Object> payload = new HashMap<>();
+        payload.put(Method.Change.UUID.toString(), uuid);
+        payload.put(Method.Change.OFFSET.toString(), offset);
+
+        try {
 //            this.transport.send(this.serverAddr, main.common.Util.putInHashMapPacket(Method.Methods.CHANGE, payload));
-//
-//            /** Add timeout here **/
-//            RawMessage res = this.transport.receive();
-//            String rcv_method = (String) res.packet.get(Method.METHOD);
-//            if (rcv_method.equals(Method.Methods.CHANGE.toString())) {
-//
-//                String msg = (String) res.packet.get(Method.PAYLOAD);
-//                System.out.println("Message received from main.server: " + msg);
-//
-//            } else {
-//                throw new MethodNotFoundException("Client.changeBooking - Unexpected Method! Expecting method 'CHANGE'");
-//            }
-//        } catch(RuntimeException e) {
-//            System.out.println("Client.changeBooking - " + e.getClass().toString() + ": " + e.getMessage());
-//        }
+            int message_id = this.getMessageId();
+
+            BytePacker packer = new BytePacker.Builder()
+                    .setProperty(SERVICE_ID, new OneByteInt(Method.CHANGE))
+                    .setProperty(MESSAGE_ID, message_id)
+                    .setProperty("uuid", uuid)
+                    .setProperty("offset", offset)
+                    .build();
+
+            this.transport.send(serverAddr, packer);
+
+            /** Add timeout here **/
+
+            try {
+                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+
+                if(transport.checkStatus(unpackedMsg)) {
+                    String reply = unpackedMsg.getString(REPLY);
+                    System.out.println("Response from server: " + reply);
+                } else {
+                    System.out.println("Failed to change booking");
+                }
+
+            } catch (IOException e) {
+                System.out.print(e);
+            }
+
+        } catch(RuntimeException e) {
+            System.out.println("Client.changeBooking - Runtime Exception! " + e.getMessage());
+        }
     }
-//
-//    /**
-//     * For simplicity, you may assume that the user that has issued a register request for monitoring is blocked from inputting any new request until the monitor interval expires,
-//     * i.e., the client simply waits for the updates from the server during the monitoring interval. As a result, you do not have to use multiple threads at a client.
-//     */
-    public void monitorAvailability() {
+
+    /**
+     * For simplicity, you may assume that the user that has issued a register request for monitoring is blocked from inputting any new request until the monitor interval expires,
+     * i.e., the client simply waits for the updates from the server during the monitoring interval. As a result, you do not have to use multiple threads at a client.
+     */
+    public void monitorAvailability(String clientAddr, int clientPort) {
 //        boolean terminate = false;
 //        HashMap<String, Object> payload = new HashMap<>();
 //        int monitorInterval = safeReadInt("Please enter your monitor interval in minutes\n(1 => 1min, 60 => 1hour, 3600 => 1 day): ");
 //        payload.put(Method.Monitor.INTERVAL.toString(), monitorInterval);
+//        payload.put(Method.Monitor.CLIENTADDR.toString(), clientAddr);
+//        payload.put(Method.Monitor.CLIENTPORT.toString(), clientPort);
 //
 //        String MANUAL = "----------------------------------------------------------------\n" +
 //                "Please choose a facility by typing [1-4]:\n" +
@@ -300,16 +386,13 @@ public class Client {
 //            /** Add 10s for latency issues? **/
 //            LocalDateTime end = LocalDateTime.now().plusMinutes(Long.valueOf(monitorInterval)).plusSeconds(10);
 //
-//            /** Blocks user until interval expires, while continuously listen to packets from server
-//             * If no packets received, i.e. no updates within interval, receive end packet from server to end monitoring
-//             * **/
-//
+//            /** Blocks user until interval expires, while continuously listen to packets from server **/
 //            while (LocalDateTime.now().isBefore(end)) {
 //                /** Add timeout here **/
 //                RawMessage res = this.transport.receive();
 //                String rcv_method = (String) res.packet.get(Method.METHOD);
 //                if (rcv_method.equals(Method.Methods.MONITOR.toString())) {
-//                    System.out.println("Message received from main.server: ");
+//                    System.out.println("message received from main.server: ");
 //                    System.out.println(res.packet);
 //                } else {
 //                    throw new MethodNotFoundException("Client.monitorBooking - Unexpected Method! Expecting method 'MONITOR'");
@@ -317,60 +400,88 @@ public class Client {
 //            }
 //            System.out.println(monitorInterval + " mins elapsed. Interval expired");
 //        } catch(RuntimeException e) {
-//            System.out.println("Client.monitorBooking - " + e.getClass().toString() + ": " + e.getMessage());
+//            System.out.println("Client.monitorBooking - Runtime Exception! " + e.getMessage());
 //        }
 
     }
 
     // an idempotent operation
     public void cancelBooking() {
-//        String uuid = readLine("Please enter the confirmation ID of the booking: ");
-//        HashMap<String, Object> payload = new HashMap<>();
-//        payload.put(Method.Cancel.UUID.toString(), uuid);
-//        try {
-//            this.transport.send(this.serverAddr, main.common.Util.putInHashMapPacket(Method.Methods.CANCEL, payload));
-//
-//            /** Add timeout here **/
-//            RawMessage res = this.transport.receive();
-//            String rcv_method = (String) res.packet.get(Method.METHOD);
-//            if (rcv_method.equals(Method.Methods.CANCEL.toString())) {
-//                String msg = (String) res.packet.get(Method.PAYLOAD);
-//                System.out.println("Message received from main.server: " + msg);
-//
-//            } else {
-//                throw new MethodNotFoundException("Client.cancelBooking - Unexpected Method! Expecting method 'CANCEL'");
-//            }
-//        } catch (RuntimeException e) {
-//            System.out.println(("Client.cancelBooking - Runtime Exception! " + e.getMessage()));
-//        }
+        String uuid = readLine("Please enter the confirmation ID of the booking: ");
+
+        try {
+
+            int message_id = this.getMessageId();
+
+            BytePacker packer = new BytePacker.Builder()
+                    .setProperty(SERVICE_ID, new OneByteInt(Method.CANCEL))
+                    .setProperty(MESSAGE_ID, message_id)
+                    .setProperty("uuid", uuid)
+                    .build();
+
+            this.transport.send(serverAddr, packer);
+            /** Add timeout here **/
+
+            try {
+                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+
+                if(transport.checkStatus(unpackedMsg)) {
+                    String reply = unpackedMsg.getString(REPLY);
+                    System.out.println("Response from server: " + reply);
+                } else {
+                    System.out.println("Failed to cancel booking");
+                }
+
+            } catch (IOException e) {
+                System.out.print(e);
+            }
+
+        } catch (RuntimeException e) {
+            System.out.println(("Client.cancelBooking - Runtime Exception! " + e.getMessage()));
+        }
     }
-//
-//    // a non-idempotent operation
+
+    // a non-idempotent operation
     public void extendBooking() {
-//        String uuid = readLine("Please enter the confirmation ID of the booking: ");
-//        double extend = safeReadDouble("Please enter the extension desired for this booking in hours (30-minute block)\n(i.e. 30-minute => 0.5, 2-hours => 2): ");
-//        while (extend <= 0 || extend % 0.5 != 0.0) {
-//            extend = safeReadDouble("Your input is not in multiples of 0.5 or is <= 0!\nPlease enter the extension desired for this booking (in 30-minute block)\n(i.e. 30-minute => 0.5, 2-hours => 2): ");
-//        }
-//        HashMap<String, Object> payload = new HashMap<>();
-//        payload.put(Method.Extend.UUID.toString(), uuid);
-//        payload.put(Method.Extend.EXTEND.toString(), extend);
-//
-//        try {
-//            this.transport.send(this.serverAddr, main.common.Util.putInHashMapPacket(Method.Methods.EXTEND, payload));
-//
-//            /** Add timeout here **/
-//            RawMessage res = this.transport.receive();
-//            String rcv_method = (String) res.packet.get(Method.METHOD);
-//            if (rcv_method.equals(Method.Methods.EXTEND.toString())) {
-//                System.out.println("Message received from main.server: ");
-//                System.out.println(res.packet);
-//            } else {
-//                throw new MethodNotFoundException("Client.extendBooking - Unexpected Method! Expecting method 'EXTEND'");
-//            }
-//        } catch(RuntimeException e) {
-//            System.out.println("Client.extendBooking - " + e.getClass().toString() + ": " + e.getMessage());
-//        }
+        String uuid = readLine("Please enter the confirmation ID of the booking: ");
+        double extend = safeReadDouble("Please enter the extension desired for this booking in hours (30-minute block)\n(i.e. 30-minute => 0.5, 2-hours => 2): ");
+        while (extend <= 0 || extend % 0.5 != 0.0) {
+            extend = safeReadDouble("Your input is not in multiples of 0.5 or is <= 0!\nPlease enter the extension desired for this booking (in 30-minute block)\n(i.e. 30-minute => 0.5, 2-hours => 2): ");
+        }
+
+
+        try {
+
+            int message_id = this.getMessageId();
+
+            BytePacker packer = new BytePacker.Builder()
+                    .setProperty(SERVICE_ID, new OneByteInt(Method.EXTEND))
+                    .setProperty(MESSAGE_ID, message_id)
+                    .setProperty("uuid", uuid)
+                    .setProperty("extendTime", extend)
+                    .build();
+
+            this.transport.send(serverAddr, packer);
+
+            /** Add timeout here **/
+
+            try {
+                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+
+                if(transport.checkStatus(unpackedMsg)) {
+                    String reply = unpackedMsg.getString(REPLY);
+                    System.out.println("Response from server: " + reply);
+                } else {
+                    System.out.println("Failed to extend booking");
+                }
+
+            } catch (IOException e) {
+                System.out.print(e);
+            }
+
+        } catch(RuntimeException e) {
+            System.out.println("Client.extendBooking - Runtime Exception! " + e.getMessage());
+        }
     }
 
 
@@ -437,4 +548,51 @@ public class Client {
 
         return new Time(userDayChoice, userHourChoice, userMinuteChoice);
     }
+
+    public void debugTest() {
+        try {
+            String testmsg = readLine("Your message: ");
+
+            int message_id = this.getMessageId();
+
+            BytePacker packer = new BytePacker.Builder()
+                    .setProperty(SERVICE_ID, new OneByteInt(Method.PING))
+                    .setProperty(MESSAGE_ID, message_id)
+                    .setProperty("pingMessage", testmsg)
+                    .build();
+
+            for(int counter=1;counter<=5;counter++) {
+                this.transport.send(this.serverAddr, packer);
+                System.out.println("Duplicate message sent: " + counter);
+
+                try {
+//                DatagramPacket p = transport.receive();
+//                byte[] data = p.getData();
+//                ByteUnpacker unpacker = new ByteUnpacker.Builder()
+//                        .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
+//                        .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
+//                        .setType("pingMessage", ByteUnpacker.TYPE.STRING)
+//                        .build();
+//
+//                ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
+                    ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+
+                    if (transport.checkStatus(unpackedMsg)) {
+                        String reply = unpackedMsg.getString(REPLY);
+                        System.out.println("Response from server: " + reply);
+                    } else {
+                        System.out.println("Failed to ping");
+                    }
+
+                } catch (SocketTimeoutException e) {
+                    System.out.print("Request timed out after 5 tries!");
+                } catch (IOException e) {
+                    System.out.print(e);
+                }
+            }
+        } catch (RuntimeException e) {
+            System.out.println("Client.sendMessageToServer - Runtime Exception! " + e.getMessage());
+        }
+    }
+
 }

@@ -7,14 +7,14 @@ import java.util.HashMap;
 import main.common.message.BytePacker;
 
 public class History {
-    private ArrayList<Client> clientList;
+    private ArrayList<ClientRecord> clientRecordList;
     public static final int HISTORY_RECORD_SIZE = 10;
 
     /**
      * Class constructor of History
      */
     public History() {
-        clientList = new ArrayList<>();
+        clientRecordList = new ArrayList<>();
     }
 
     /**
@@ -24,28 +24,28 @@ public class History {
      * @param port    portnumber
      * @return client object
      */
-    public Client findClient(InetAddress address, int port) {
-        for (Client c : clientList) {
+    public ClientRecord findClient(InetAddress address, int port) {
+        for (ClientRecord c : clientRecordList) {
             if (c.address.equals(address) && c.portNumber == port) {
                 return c;
             }
         }
-        Client newClient = new Client(address, port);
-        clientList.add(newClient);
-        return newClient;
+        ClientRecord newClientRecord = new ClientRecord(address, port);
+        clientRecordList.add(newClientRecord);
+        return newClientRecord;
     }
 
     /**
      * Represents each client that has sent the server a request before.
      */
-    public class Client {
+    public class ClientRecord {
         private InetAddress address;
         private int portNumber;
         private HashMap<Integer, BytePacker> messageIdToReplyMap;
         private int[] historyRecord;
         private int count;
 
-        public Client(InetAddress address, int portNumber) {
+        public ClientRecord(InetAddress address, int portNumber) {
             this.address = address;
             this.portNumber = portNumber;
             this.messageIdToReplyMap = new HashMap<>();
@@ -54,16 +54,26 @@ public class History {
             Arrays.fill(historyRecord, -1);
         }
 
+        public InetAddress getClientAddress() {
+            return this.address;
+        }
+
+        public int getClientPortNumber() {
+            return this.portNumber;
+        }
+
         /**
          * Searches if messageID exist in client hashmap
          *
          * @param messageId - messageId of incoming request
          * @return reply to request if messageID does exists in the hashmap, null otherwise
          */
+
+
         public BytePacker searchForDuplicateRequest(int messageId) {
             BytePacker reply = this.messageIdToReplyMap.get(messageId);
             if (reply != null) {
-                System.out.println("Request already serviced. Resending reply");
+                System.out.println("Received duplicate request! Sending stored reply...");
             }
             return reply;
         }
@@ -72,13 +82,13 @@ public class History {
          * Adds a messageId and reply to hashmap after request is serviced.
          *
          * @param messageId          - messageId of incoming request
-         * @param replyToServicedReq - reply sent to client for this request
+         * @param reply - reply sent to client for this request
          */
-        public void addServicedReqToMap(int messageId, BytePacker replyToServicedReq) {
+        public void addReplyEntry(int messageId, BytePacker reply) {
             if (historyRecord[count] != -1) {
                 messageIdToReplyMap.remove(historyRecord[count]);
             }
-            this.messageIdToReplyMap.put(messageId, replyToServicedReq);
+            this.messageIdToReplyMap.put(messageId, reply);
             historyRecord[count] = messageId;
             count = (count + 1) % HISTORY_RECORD_SIZE;
 
