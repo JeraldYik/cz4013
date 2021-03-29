@@ -51,7 +51,7 @@ public class Handler {
 
             ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
 
-            String pingMessage = unpackedMsg.getString("pingMessage");
+            String pingMessage = unpackedMsg.getString(Method.Ping.PING.toString());
             int messageId = unpackedMsg.getInteger(MESSAGE_ID);
 
             System.out.println("Received ping from client: " + pingMessage);
@@ -156,8 +156,8 @@ public class Handler {
 
             ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
 
-            int monitorInterval = unpackedMsg.getInteger("monitorInterval");
-            String facility = unpackedMsg.getString("facility");
+            int monitorInterval = unpackedMsg.getInteger(Method.Monitor.INTERVAL.toString());
+            String facility = unpackedMsg.getString(Method.Monitor.FACILITY.toString());
             Facilities.Types t = Facilities.Types.valueOf(facility);
             String clientAddress = clientAddr.toString();
 
@@ -186,8 +186,8 @@ public class Handler {
 
             ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
 
-            String uuid = unpackedMsg.getString("uuid");
-            double extendTime = unpackedMsg.getDouble("extendTime");
+            String uuid = unpackedMsg.getString(Method.Extend.UUID.toString());
+            double extendTime = unpackedMsg.getDouble(Method.Extend.EXTEND.toString());
             Pair<String, Facilities.Types> msg = facilities.extendBooking(uuid, extendTime);
             String replyMsg = "";
 
@@ -219,7 +219,7 @@ public class Handler {
 
             ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
 
-            String uuid = unpackedMsg.getString("uuid");
+            String uuid = unpackedMsg.getString(Method.Cancel.UUID.toString());
             Pair<String, Facilities.Types> msg = facilities.cancelBooking(uuid);
             String replyMsg = "";
 
