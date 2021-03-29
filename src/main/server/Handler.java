@@ -35,8 +35,6 @@ public class Handler {
         System.out.println("Method: " + serviceRequested);
 
         if (serviceRequested == Method.PING) {
-            System.out.println("message received from main.client: ");
-            System.out.println(data);
 
             // unpack data
             ByteUnpacker unpacker = new ByteUnpacker.Builder()

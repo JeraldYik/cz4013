@@ -6,6 +6,7 @@ import main.common.message.OneByteInt;
 
 
 import javax.swing.*;
+import java.awt.desktop.SystemSleepEvent;
 import java.io.IOException;
 import java.net.*;
 import java.util.Arrays;
@@ -57,7 +58,7 @@ public class Transport {
 
     // Serialise obj next time
     public void send(SocketAddress dest, BytePacker packer) {
-
+        System.out.println("Message sent to: " + dest);
         byte[] msg = packer.getByteArray();
         try {
             this.socket.send(new DatagramPacket(msg, msg.length, dest));
@@ -94,6 +95,7 @@ public class Transport {
                         .build();
 
                 ByteUnpacker.UnpackedMsg unpackedMsg = byteUnpacker.parseByteArray(reply.getData());
+
                 if (checkMsgId(messageId, unpackedMsg)) {
                     return unpackedMsg;
                 }
@@ -119,6 +121,8 @@ public class Transport {
 
     public final boolean checkMsgId(Integer messageId, ByteUnpacker.UnpackedMsg unpackedMsg) {
         Integer returnMessageId = unpackedMsg.getInteger(MESSAGE_ID);
+        System.out.println("returnMessageId: " + returnMessageId);
+        System.out.println("messageId: " + messageId);
         if (returnMessageId != null) {
             return messageId == returnMessageId;
         }

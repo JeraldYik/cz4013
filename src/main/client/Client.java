@@ -60,20 +60,29 @@ public class Client {
         try {
             String testmsg = readLine("Your message: ");
 
+            int message_id = this.getMessageId();
+
             BytePacker packer = new BytePacker.Builder()
                     .setProperty(SERVICE_ID, new OneByteInt(Method.PING))
-                    .setProperty(MESSAGE_ID, this.getMessageId())
+                    .setProperty(MESSAGE_ID, message_id)
                     .setProperty("pingMessage", testmsg)
                     .build();
-
-            System.out.println(packer);
 
             this.transport.send(this.serverAddr, packer);
             System.out.println("message sent to server");
             /** Add timeout here **/
 
             try {
-                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, this.getMessageId());
+//                DatagramPacket p = transport.receive();
+//                byte[] data = p.getData();
+//                ByteUnpacker unpacker = new ByteUnpacker.Builder()
+//                        .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
+//                        .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
+//                        .setType("pingMessage", ByteUnpacker.TYPE.STRING)
+//                        .build();
+//
+//                ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
+                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
 
                 if(transport.checkStatus(unpackedMsg)) {
                     String reply = unpackedMsg.getString(REPLY);
@@ -131,9 +140,11 @@ public class Client {
             }
             /** Add timeout here **/
 
+            int message_id = this.getMessageId();
+
             BytePacker packer = new BytePacker.Builder()
                     .setProperty(SERVICE_ID, new OneByteInt(Method.QUERY))
-                    .setProperty(MESSAGE_ID, this.getMessageId())
+                    .setProperty(MESSAGE_ID, message_id)
                     .setProperty("facility", facility)
                     .build();
 
@@ -142,7 +153,7 @@ public class Client {
             /** Add timeout here **/
 
             try {
-                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, this.getMessageId());
+                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
 
                 if(transport.checkStatus(unpackedMsg)) {
                     String reply = unpackedMsg.getString(REPLY);
@@ -229,9 +240,11 @@ public class Client {
                 }
             }
 
+            int message_id = this.getMessageId();
+
             BytePacker packer = new BytePacker.Builder()
                     .setProperty(SERVICE_ID, new OneByteInt(Method.ADD))
-                    .setProperty(MESSAGE_ID, this.getMessageId())
+                    .setProperty(MESSAGE_ID, message_id)
                     .setProperty("startDay", startDay)
                     .setProperty("startHour", startHr)
                     .setProperty("startMin", startMin)
@@ -247,7 +260,7 @@ public class Client {
             /** Add timeout here **/
 
             try {
-                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, this.getMessageId());
+                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
 
                 if(transport.checkStatus(unpackedMsg)) {
                     String reply = unpackedMsg.getString(REPLY);
@@ -274,9 +287,11 @@ public class Client {
 
         try {
 //            this.transport.send(this.serverAddr, main.common.Util.putInHashMapPacket(Method.Methods.CHANGE, payload));
+            int message_id = this.getMessageId();
+
             BytePacker packer = new BytePacker.Builder()
                     .setProperty(SERVICE_ID, new OneByteInt(Method.CHANGE))
-                    .setProperty(MESSAGE_ID, this.getMessageId())
+                    .setProperty(MESSAGE_ID, message_id)
                     .setProperty("uuid", uuid)
                     .setProperty("offset", offset)
                     .build();
@@ -286,7 +301,7 @@ public class Client {
             /** Add timeout here **/
 
             try {
-                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, this.getMessageId());
+                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
 
                 if(transport.checkStatus(unpackedMsg)) {
                     String reply = unpackedMsg.getString(REPLY);
@@ -382,9 +397,11 @@ public class Client {
 
         try {
 
+            int message_id = this.getMessageId();
+
             BytePacker packer = new BytePacker.Builder()
                     .setProperty(SERVICE_ID, new OneByteInt(Method.CANCEL))
-                    .setProperty(MESSAGE_ID, this.getMessageId())
+                    .setProperty(MESSAGE_ID, message_id)
                     .setProperty("uuid", uuid)
                     .build();
 
@@ -392,7 +409,7 @@ public class Client {
             /** Add timeout here **/
 
             try {
-                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, this.getMessageId());
+                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
 
                 if(transport.checkStatus(unpackedMsg)) {
                     String reply = unpackedMsg.getString(REPLY);
@@ -421,9 +438,11 @@ public class Client {
 
         try {
 
+            int message_id = this.getMessageId();
+
             BytePacker packer = new BytePacker.Builder()
                     .setProperty(SERVICE_ID, new OneByteInt(Method.EXTEND))
-                    .setProperty(MESSAGE_ID, this.getMessageId())
+                    .setProperty(MESSAGE_ID, message_id)
                     .setProperty("uuid", uuid)
                     .setProperty("extendTime", extend)
                     .build();
@@ -433,7 +452,7 @@ public class Client {
             /** Add timeout here **/
 
             try {
-                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, this.getMessageId());
+                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
 
                 if(transport.checkStatus(unpackedMsg)) {
                     String reply = unpackedMsg.getString(REPLY);
