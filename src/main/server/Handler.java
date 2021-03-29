@@ -18,11 +18,11 @@ import java.util.UUID;
 
 public class Handler {
 
-    private static History history;
+    private History history;
 
-    public static void handle(Transport server, Facilities facilities, RawMessage req) {
+    public void handle(Transport server, Facilities facilities, RawMessage req) {
         /** Deregister first **/
-        history = new History();
+        this.history = new History();
         ArrayList<NodeInformation> deregisters = facilities.deregister();
         while (deregisters != null && !deregisters.isEmpty()) {
             NodeInformation n = deregisters.remove(deregisters.size() - 1);

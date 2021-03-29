@@ -4,8 +4,7 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-
-//import message.BytePacker;
+import main.common.message.BytePacker;
 
 public class History {
     private ArrayList<Client> clientList;
@@ -64,7 +63,7 @@ public class History {
         public BytePacker searchForDuplicateRequest(int messageId) {
             BytePacker reply = this.messageIdToReplyMap.get(messageId);
             if (reply != null) {
-                Console.debug("Request already serviced. Resending reply");
+                System.out.println("Request already serviced. Resending reply");
             }
             return reply;
         }

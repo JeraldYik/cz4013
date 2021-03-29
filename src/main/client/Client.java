@@ -5,10 +5,18 @@ import main.common.network.Method;
 import main.common.network.MethodNotFoundException;
 import main.common.network.RawMessage;
 import main.common.network.Transport;
+import main.common.message.*;
 
 import java.net.SocketAddress;
-import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import javax.xml.crypto.Data;
+import java.io.IOException;
+import java.net.*;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.SortedSet;
+import java.util.UUID;
+import java.util.Arrays;
 
 import static main.client.Util.*;
 
@@ -16,6 +24,13 @@ public class Client {
     private final Transport transport;
     private final SocketAddress serverAddr;
     private int messageId;
+
+    protected static final String STATUS = "status";
+    protected static final String SERVICE_ID = "serviceId";
+    protected static final String MESSAGE_ID = "messageId";
+    protected static final String REPLY = "reply";
+
+    public static final int BUFFER_SIZE = 2048;
 
     public Client(Transport transport, SocketAddress serverAddr) {
         this.transport = transport;
@@ -27,8 +42,8 @@ public class Client {
         return messageId;
     }
 
-    public void setMessageId(int message_id) {
-        this.messageId = message_id;
+    public void setMessageId(int messageId) {
+        this.messageId = messageId;
     }
 
     public void sendMessageToServer() {

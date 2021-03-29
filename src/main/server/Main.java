@@ -18,6 +18,7 @@ public class Main {
         System.out.println("Listening on udp://" + serverHost + ":" + port);
 
         Facilities facilities = new Facilities();
+        Handler handler = new Handler();
 
         /** maybe there's no need for rmi architecture
          try {
@@ -48,7 +49,7 @@ public class Main {
             try {
                 while (true) {
                     RawMessage req = server.serverReceive();
-                    Handler.handle(server, facilities, req);
+                    handler.handle(server, facilities, req);
                 }
             } catch (RuntimeException e) {
                 System.out.println("Server.Main - Runtime Exception! " + e.getCause());
