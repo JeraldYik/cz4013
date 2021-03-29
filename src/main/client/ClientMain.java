@@ -34,8 +34,8 @@ public class ClientMain {
                 "----------------------------------------------------------------\n" +
                 "Please choose a test function by typing [1-]:\n" +
                 "1: Send repeated ping requests with duplicate message IDs\n" +
-                "2: Send repeated booking cancellation requests with duplicate message IDs (non-idempotent)\n" +
-                "3: Send repeated booking extension requests with duplicate message IDs (idempotent)\n" +
+                "2: Send repeated booking cancellation requests with duplicate message IDs (idempotent)\n" +
+                "3: Send repeated booking extension requests with duplicate message IDs (non-idempotent)\n" +
                 "4: Back to main menu\n" +
                 "5: Print menu\n";
 
