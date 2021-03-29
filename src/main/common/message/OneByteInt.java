@@ -1,4 +1,4 @@
-package main.server.message;
+package main.common.message;
 
 public class OneByteInt {
 

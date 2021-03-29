@@ -3,26 +3,59 @@ package main.client;
 import javafx.util.Pair;
 import main.common.facility.Facilities;
 import main.common.facility.Time;
+import main.common.message.BytePacker;
+import main.common.message.ByteUnpacker;
+import main.common.message.OneByteInt;
 import main.common.network.Method;
 import main.common.network.MethodNotFoundException;
 import main.common.network.RawMessage;
-import main.common.network.Transport;
 
-import java.lang.invoke.MethodHandle;
-import java.net.SocketAddress;
+//import java.lang.invoke.MethodHandle;
+//import java.net.DatagramPacket;
+import javax.xml.crypto.Data;
+import java.io.IOException;
+import java.net.*;
+//import java.net.Socket;
+//import java.net.SocketAddress;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.SortedSet;
 import java.util.UUID;
+import java.util.Arrays;
+
+import main.common.network.*;
 
 import static main.client.Util.*;
 
 public class Client {
+//    private final Transport transport;
+//    private DatagramSocket socket = null;
+    private SocketAddress serverAddr;
     private final Transport transport;
-    private final SocketAddress serverAddr;
+    private int message_id;
 
-    public Client(Transport transport, SocketAddress serverAddr) {
+    protected static final String STATUS = "status";
+    protected static final String SERVICE_ID = "serviceId";
+    protected static final String MESSAGE_ID = "messageId";
+    protected static final String REPLY = "reply";
+
+    public static final int BUFFER_SIZE = 2048;
+
+    private byte[] buffer = new byte[BUFFER_SIZE];
+
+    public Client(Transport transport, SocketAddress serverAddr) throws UnknownHostException, SocketException {
         this.transport = transport;
         this.serverAddr = serverAddr;
+//        this.socket = new DatagramSocket(); // Already initialised in Transport
+        this.message_id = 0;
+    }
+
+    public int getMessageId(){
+        return message_id++;
+    }
+
+    public void setMessageId(int msg_id){
+        this.message_id = msg_id;
     }
 
 
@@ -125,7 +158,17 @@ public class Client {
     }
 
     public void addBooking() {
+        String facility = "";
+        int startDay;
+        int startHr;
+        int startMin;
+        int endDay;
+        int endHr;
+        int endMin;
+
+        System.out.println("------------------------Adding Booking------------------------");
         Time start = getTime("Please enter the start time.");
+
         Time end = getTime("Please enter the end time. (Must be later than the end time)");
         while (!Time.compare(start, end)) {
             System.out.println("End time must be larger than start time!");
@@ -133,6 +176,14 @@ public class Client {
             System.out.println("Invalid end time entered: " + end  + "\n");
             end = getTime("Please enter a larger end time: ");
         }
+        startDay = start.day;
+        startHr = start.hour;
+        startMin = start.minute;
+
+        endDay = end.day;
+        endHr = end.hour;
+        endMin = end.minute;
+
         System.out.println();
         System.out.println("Start time: " + start.toString());
         System.out.println("End time: " + end.toString());
@@ -153,19 +204,19 @@ public class Client {
                 int userChoice = safeReadInt("Your choice of facility: ");
                 switch (userChoice) {
                     case 1:
-                        payload.put(Method.Add.FACILITY.toString(), Facilities.Types.LT1);
+                        facility = Facilities.Types.LT1.toString();
                         terminate = true;
                         break;
                     case 2:
-                        payload.put(Method.Add.FACILITY.toString(), Facilities.Types.LT2);
+                        facility = Facilities.Types.LT2.toString();
                         terminate = true;
                         break;
                     case 3:
-                        payload.put(Method.Add.FACILITY.toString(), Facilities.Types.MR1);
+                        facility = Facilities.Types.MR1.toString();
                         terminate = true;
                         break;
                     case 4:
-                        payload.put(Method.Add.FACILITY.toString(), Facilities.Types.MR2);
+                        facility = Facilities.Types.MR2.toString();
                         terminate = true;
                         break;
                     case 0:
@@ -175,18 +226,47 @@ public class Client {
                         break;
                 }
             }
-            this.transport.send(this.serverAddr, main.common.Util.putInHashMapPacket(Method.Methods.ADD, payload));
+
+            BytePacker packer = new BytePacker.Builder()
+                    .setProperty(SERVICE_ID, Method.Methods.ADD.toString())
+                    .setProperty(MESSAGE_ID, this.getMessageId())
+                    .setProperty("StartDay", startDay)
+                    .setProperty("StartHour", startHr)
+                    .setProperty("StartMin", startMin)
+                    .setProperty("EndDay", endDay)
+                    .setProperty("EndHour", endHr)
+                    .setProperty("EndMin", endMin)
+                    .setProperty("Facility", facility)
+                    .build();
+
+            transport.send(serverAddr, packer);
+
 
             /** Add timeout here **/
-            RawMessage res = this.transport.receive();
-            String rcv_method = (String) res.packet.get(Method.METHOD);
-            if (rcv_method.equals(Method.Methods.ADD.toString())) {
-                System.out.println("message received from main.server: ");
-                String uuid = (String) res.packet.get(Method.PAYLOAD);
-                System.out.println("UUID of your booking: " + uuid);
-            } else {
-                throw new MethodNotFoundException("Client.addBooking - Unexpected Method! Expecting method 'ADD'");
+
+            try {
+                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, this.getMessageId());
+
+                if(transport.checkStatus(unpackedMsg)) {
+                    String reply = unpackedMsg.getString(REPLY);
+                    System.out.println("Response from server: " + reply);
+                } else {
+                    System.out.println("Failed to add booking");
+                }
+
+            } catch (IOException e) {
+                System.out.print(e);
             }
+
+//            RawMessage res = this.transport.receive();
+//            String rcv_method = (String) res.packet.get(Method.METHOD);
+//            if (rcv_method.equals(Method.Methods.ADD.toString())) {
+//                System.out.println("message received from main.server: ");
+//                String uuid = (String) res.packet.get(Method.PAYLOAD);
+//                System.out.println("UUID of your booking: " + uuid);
+//            } else {
+//                throw new MethodNotFoundException("Client.addBooking - Unexpected Method! Expecting method 'ADD'");
+//            }
         } catch(RuntimeException e) {
             System.out.println("Client.addBooking - Runtime Exception! " + e.getMessage());
         }

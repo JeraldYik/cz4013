@@ -18,9 +18,9 @@ public class Time implements Serializable {
         SUNDAY
     }
 //     private Days day;
-    private int day;
-    private int hour;
-    private int minute;
+    public int day;
+    public int hour;
+    public int minute;
 
     public Time (int dayChoice, int hour, int minute) {
 //        this.day = Days.values()[dayChoice];

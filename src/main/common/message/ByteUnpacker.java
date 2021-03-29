@@ -1,4 +1,4 @@
-package main.server.message;
+package main.common.message;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -14,13 +14,13 @@ public class ByteUnpacker {
         propToValue = new HashMap<>();
     }
 
-    public ByteUnpacker defineComponents(ByteUnpacker unpacker){
-        if(unpacker!=null){
-            properties.addAll(unpacker.properties);
-            propToValue.putAll(unpacker.propToValue);
-        }
-        return this;
-    }
+//    public ByteUnpacker defineComponents(ByteUnpacker unpacker){
+//        if(unpacker!=null){
+//            properties.addAll(unpacker.properties);
+//            propToValue.putAll(unpacker.propToValue);
+//        }
+//        return this;
+//    }
 
     public UnpackedMsg parseByteArray(byte[] data){
         int offset = 0;
