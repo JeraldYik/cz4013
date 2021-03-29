@@ -17,10 +17,11 @@ public class Time implements Serializable {
         SATURDAY,
         SUNDAY
     }
-//     private Days day;
+
     public int day;
     public int hour;
     public int minute;
+
 
     public Time (int dayChoice, int hour, int minute) {
 //        this.day = Days.values()[dayChoice];
@@ -56,62 +57,58 @@ public class Time implements Serializable {
     }
 
     public static Time add(Time time, int offset) {
+        int day = time.day;
+        int hour = time.hour;
+        int min = time.minute;
+
         int numDays = offset/3600;
         offset -= numDays*3600;
         int numHours = offset/60;
         offset -= numHours*60;
         int numMinutes = offset;
 
-        time.minute += numMinutes;
-        if (time.minute >= 60) {
-            time.hour++;
-            time.minute -= 60;
+        min += numMinutes;
+        if (min >= 60) {
+            hour++;
+            min -= 60;
         }
-        time.hour += numHours;
-        if (time.hour >= 24) {
-            time.day++;
-            time.hour -= 24;
+        hour += numHours;
+        if (hour >= 24) {
+            day++;
+            hour -= 24;
         }
-        time.day += numDays;
-        if (time.day > 7) {
+        day += numDays;
+        if (day > 7) {
             return null;
         }
-        return time;
+        return new Time(day, hour, min);
     }
 
     public static Time subtract(Time time, int offset) {
+        int day = time.day;
+        int hour = time.hour;
+        int min = time.minute;
+
         int numDays = offset/3600;
         offset -= numDays*3600;
         int numHours = offset/60;
         offset -= numHours*60;
         int numMinutes = offset;
 
-        time.minute -= numMinutes;
-        if (time.minute < 0) {
-            time.hour--;
-            time.minute += 60;
+        min -= numMinutes;
+        if (min < 0) {
+            hour--;
+            min += 60;
         }
-        time.hour -= numHours;
-        if (time.hour < 0) {
-            time.day--;
-            time.hour += 24;
+        hour -= numHours;
+        if (hour < 0) {
+            day--;
+            hour += 24;
         }
-        time.day -= numDays;
-        if (time.day < 1) {
+        day -= numDays;
+        if (day < 1) {
             return null;
         }
-        return time;
+        return new Time(day, hour, min);
     }
-
-//    public int getDay() {
-//        return this.day;
-//    }
-//
-//    public int getHour() {
-//        return this.hour;
-//    }
-//
-//    public int getMinute() {
-//        return this.minute;
-//    }
 }

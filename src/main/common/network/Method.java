@@ -39,9 +39,7 @@ public class Method {
 
     public enum Monitor {
         FACILITY,
-        INTERVAL,
-        CLIENTADDR,
-        CLIENTPORT
+        INTERVAL
     }
 
     public enum Extend {

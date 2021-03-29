@@ -13,7 +13,16 @@ import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
 import java.time.temporal.ChronoUnit;
+import main.common.network.*;
+
+import java.lang.invoke.MethodHandle;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.net.SocketException;
+
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.SortedSet;
 import java.util.UUID;
@@ -40,7 +49,6 @@ public class Client {
     public Client(Transport transport, SocketAddress serverAddr){
         this.transport = transport;
         this.serverAddr = serverAddr;
-//        this.socket = new DatagramSocket(); // Already initialised in Transport
         this.message_id = 0;
     }
 
@@ -70,15 +78,13 @@ public class Client {
             /** Add timeout here **/
 
             try {
-//                DatagramPacket p = transport.receive();
-//                byte[] data = p.getData();
-//                ByteUnpacker unpacker = new ByteUnpacker.Builder()
-//                        .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
-//                        .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
-//                        .setType("pingMessage", ByteUnpacker.TYPE.STRING)
-//                        .build();
-//
-//                ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
+
+                ByteUnpacker unpacker = new ByteUnpacker.Builder()
+                        .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
+                        .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
+                        .setType("pingMessage", ByteUnpacker.TYPE.STRING)
+                        .build();
+
                 ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
 
                 if(transport.checkStatus(unpackedMsg)) {
@@ -94,6 +100,7 @@ public class Client {
 
         } catch(RuntimeException e) {
             System.out.println("Client.sendMessageToServer - Runtime Exception! " + e.getMessage());
+
         }
     }
 
@@ -107,7 +114,9 @@ public class Client {
                 "0: Exit and perform another query\n";
         System.out.print(MANUAL);
         boolean terminate = false;
+
         String facility = "";
+
         try {
             while (!terminate) {
                 int userChoice = safeReadInt("Your choice of facility: ");
@@ -163,7 +172,7 @@ public class Client {
                 System.out.print(e);
             }
         } catch(RuntimeException e) {
-            System.out.println("Client.queryAvailability - Runtime Exception! " + e.getMessage());
+            System.out.println("Client.queryAvailability - " + e.getClass().toString() + ": " + e.getMessage());
         }
     }
 
@@ -268,7 +277,7 @@ public class Client {
             }
 
         } catch(RuntimeException e) {
-            System.out.println("Client.addBooking - Runtime Exception! " + e.getMessage());
+            System.out.println("Client.addBooking - " + e.getClass().toString() + ": " + e.getMessage());
         }
     }
 
@@ -306,7 +315,7 @@ public class Client {
             }
 
         } catch(RuntimeException e) {
-            System.out.println("Client.changeBooking - Runtime Exception! " + e.getMessage());
+            System.out.println("Client.changeBooking - " + e.getClass().toString() + ": " + e.getMessage());
         }
     }
 
@@ -328,6 +337,7 @@ public class Client {
                 "0: Exit and perform another query\n";
         System.out.print(MANUAL);
 
+        Facilities.Types t = null;
         try {
             while (!terminate) {
                 int userChoice = safeReadInt("Your choice of facility: ");
@@ -386,7 +396,7 @@ public class Client {
                         String reply = unpackedMsg.getString(REPLY);
                         System.out.println("Message received from server: " + reply);
                     } else {
-                        System.out.println("Failed to monitor booking");
+//                        printBookings((ArrayList<Pair<Time, Time>>) payloadFromServer, t);
                     }
 
                 } catch (IOException e) {
@@ -473,10 +483,11 @@ public class Client {
 
             } catch (IOException e) {
                 System.out.print(e);
+
             }
 
         } catch(RuntimeException e) {
-            System.out.println("Client.extendBooking - Runtime Exception! " + e.getMessage());
+            System.out.println("Client.extendBooking - " + e.getClass().toString() + ": " + e.getMessage());
         }
     }
 
@@ -497,6 +508,29 @@ public class Client {
 //         } catch (Exception e) {
 //            System.out.println("Exception! " + e.getMessage());
 //         }
+    }
+
+    private void printBookings(ArrayList<Pair<Time, Time>> bookings, Facilities.Types t) {
+        if (t == null) {
+            System.out.println("Facility Type is null for unknown reason");
+            return;
+        }
+        System.out.println("Message received from server: ");
+        if (bookings.isEmpty()) {
+            System.out.println("No active bookings for " + t.toString());
+        } else {
+            System.out.println("For " + t.toString() + ":");
+            for (int bookingCount=1; bookingCount <= bookings.size(); bookingCount++) {
+                System.out.format("---------------Booking %d---------------\n", bookingCount);
+
+                Pair<Time, Time> timeTimePair = bookings.get(bookingCount-1);
+                Time startTime = timeTimePair.getKey();
+                Time endTime = timeTimePair.getValue();
+
+                System.out.println("Start Time: " + startTime);
+                System.out.println("End Time: " + endTime);
+            }
+        }
     }
 
     private Time getTime(String prompt) {
@@ -545,26 +579,4 @@ public class Client {
         return new Time(userDayChoice, userHourChoice, userMinuteChoice);
     }
 
-    private void printBookings(ArrayList<Pair<Time, Time>> bookings, Facilities.Types t) {
-        if (t == null) {
-            System.out.println("Facility Type is null for unknown reason");
-            return;
-        }
-        System.out.println("Message received from server: ");
-        if (bookings.isEmpty()) {
-            System.out.println("No active bookings for " + t.toString());
-        } else {
-            System.out.println("For " + t.toString() + ":");
-            for (int bookingCount=1; bookingCount <= bookings.size(); bookingCount++) {
-                System.out.format("---------------Booking %d---------------\n", bookingCount);
-
-                Pair<Time, Time> timeTimePair = bookings.get(bookingCount-1);
-                Time startTime = timeTimePair.getKey();
-                Time endTime = timeTimePair.getValue();
-
-                System.out.println("Start Time: " + startTime);
-                System.out.println("End Time: " + endTime);
-            }
-        }
-    }
 }

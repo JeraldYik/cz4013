@@ -105,16 +105,13 @@ public class Transport {
     }
 
     /** timeout in milliseconds **/
-    public DatagramPacket setNonZeroTimeoutAndReceive(int timeout) throws MonitoringExpireException{
+    public DatagramPacket setNonZeroTimeoutAndReceive(int timeout) throws MonitoringExpireException, IOException{
         try {
             this.socket.setSoTimeout(timeout);
             return this.receive();
         } catch (SocketException e) {
             throw new MonitoringExpireException();
-        } catch (IOException e) {
-            System.out.println(e);
         }
-
     }
 
 }

@@ -1,4 +1,3 @@
-
 package main.common.network;
 
 public class MonitoringExpireException extends RuntimeException {

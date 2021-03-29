@@ -1,11 +1,8 @@
 package main.server;
 
 import main.common.facility.Facilities;
-import main.common.network.RawMessage;
 import main.common.network.Transport;
 
-import javax.xml.crypto.Data;
-import java.io.IOException;
 import java.net.*;
 
 
@@ -51,10 +48,8 @@ public class Main {
                     System.out.println("Packet received from client is null");
                 }
             }
-        } catch(RuntimeException e) {
-            System.out.println("Server.Main - Runtime Exception! " + e.getMessage());
-        } catch(IOException e) {
-            System.out.println("Server.Main - IO Exception! " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Server.Main - " + e.getClass().toString() + ": " + e.getMessage());
         }
     }
 

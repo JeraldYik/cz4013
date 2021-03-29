@@ -1,8 +1,9 @@
 package main.common.facility;
 
 import javafx.util.Pair;
-import main.common.network.NodeInformation;
 
+import java.lang.reflect.Array;
+import java.net.InetSocketAddress;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -40,69 +41,94 @@ public class Facilities {
         }
     }
 
-    public HashMap<UUID, Pair<Time, Time>> queryAvailability(Types t) {
-        return this.availability.get(t).queryAvailability();
+    public ArrayList<Pair<Time, Time>> queryAvailability(Types t) {
+        return new ArrayList(this.availability.get(t).queryAvailability().values());
     }
 
+    /** Return null if unsuccessful **/
     public String addBooking(Types t, Time start, Time end) {
         UUID uuid = this.availability.get(t).addBooking(start, end);
-        if (uuid == null) return "Booking for " + t.toString() + " already exist at " + start + "-" + end;
+        if (uuid == null) return null;
         else {
             this.bookings.get(t).add(uuid);
             return uuid.toString();
         }
     }
 
-    public String changeBooking(String uuid, int offset) {
+    /** Return Facility Type null if unsuccessful **/
+    public Pair<String, Facilities.Types> changeBooking(String uuid, int offset) {
         Types t = null;
         for (HashMap.Entry<Types, ArrayList<UUID>> entry : this.bookings.entrySet()) {
             for (UUID u : entry.getValue()) {
                 if (u.toString().equals(uuid)) t = entry.getKey();
             }
         }
-        if (t == null) return "Confirmation ID: " + uuid + " cannot be found.";
-        return this.availability.get(t).changeBooking(uuid, offset);
+        if (t == null) return new Pair("Confirmation ID: " + uuid + " cannot be found.", null);
+        Pair<String, Boolean> result = this.availability.get(t).changeBooking(uuid, offset);
+        return new Pair(result.getKey(), result.getValue() == null ? null : t);
     }
 
-
-    public String cancelBooking(String uuid) {
+    /** Return Facility Type null if unsuccessful **/
+    public Pair<String, Facilities.Types> cancelBooking(String uuid) {
         Types t = null;
         for (HashMap.Entry<Types, ArrayList<UUID>> entry : this.bookings.entrySet()) {
             for (UUID u : entry.getValue()) {
                 if (u.toString().equals(uuid)) t = entry.getKey();
             }
         }
-        if (t == null) return "Confirmation ID: " + uuid + " cannot be found.";
-        return this.availability.get(t).cancelBooking(uuid);
+        if (t == null) return new Pair("Confirmation ID: " + uuid + " cannot be found.", null);
+        Pair<String, Boolean> result = this.availability.get(t).cancelBooking(uuid);
+        return new Pair(result.getKey(), result.getValue() == null ? null : t);
     }
 
-
-    public LocalDateTime monitorAvailability(Types t, int monitorInterval, String clientAddr, int clientPort) {
+    public LocalDateTime monitorAvailability(Types t, int monitorInterval, InetSocketAddress addr) {
         LocalDateTime stop = LocalDateTime.now().plusMinutes(monitorInterval);
         this.timePQ.add(stop);
-        NodeInformation n = new NodeInformation(clientAddr, clientPort);
+        NodeInformation n = new NodeInformation(addr, t);
         this.timeMap.put(stop, n);
         this.monitors.get(t).add(n);
         return stop;
     }
 
-    public String extendBooking(String uuid, double extend) {
-
+    /** Return Facility Type null if unsuccessful **/
+    public Pair<String, Facilities.Types> extendBooking(String uuid, double extend) {
         Types t = null;
         for (HashMap.Entry<Types, ArrayList<UUID>> entry : this.bookings.entrySet()) {
             for (UUID u : entry.getValue()) {
                 if (u.toString().equals(uuid)) t = entry.getKey();
             }
         }
-        if (t == null) return "Confirmation ID: " + uuid + " cannot be found.";
-        return this.availability.get(t).extendBooking(uuid, extend);
+        if (t == null) return new Pair("Confirmation ID: " + uuid + " cannot be found.", null);
+        Pair<String, Boolean> result = this.availability.get(t).extendBooking(uuid, extend);
+        return new Pair(result.getKey(), result.getValue() == null ? null : t);
     }
 
     /** Called whenever an update occurs
-     * Use this method to send deregister packet to target client
-     * and remove target client from cache
+     * Use this method to remove target client from cache
      */
-//    public String deregister() {
-//
-//    }
+    public void deregister() {
+        if (this.timePQ.isEmpty()) return;
+        LocalDateTime now = LocalDateTime.now();
+        ArrayList<LocalDateTime> toDeregister = new ArrayList<>();
+        while (!this.timePQ.isEmpty() && this.timePQ.peek().isBefore(now)) {
+            toDeregister.add(this.timePQ.poll());
+        }
+        for (LocalDateTime dt : toDeregister) {
+            NodeInformation currentNode = this.timeMap.get(dt);
+            ListIterator<NodeInformation> iter = this.monitors.get(currentNode.type).listIterator();
+            while (iter.hasNext()) {
+                if (iter.next().equals(currentNode)) iter.remove();
+            }
+            this.timeMap.remove(dt);
+        }
+        System.out.println(this.monitors);
+    }
+
+    public ArrayList<NodeInformation> clientsToUpdate(Facilities.Types t) {
+        return this.monitors.get(t);
+    }
+
+    public HashMap<Types, ArrayList<NodeInformation>> getMonitors() {
+        return monitors;
+    }
 }
