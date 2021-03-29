@@ -33,7 +33,7 @@ public class Client {
     private InetSocketAddress serverAddr;
     private final Transport transport;
     private int message_id;
-    private final double failureProbability = 0.0;
+    private double failureProbability;
     private final int timeout = 2000;
     private Random random;
 
@@ -43,9 +43,10 @@ public class Client {
     protected static final String REPLY = "REPLY";
 
 
-    public Client(Transport transport, InetSocketAddress serverAddr){
+    public Client(Transport transport, InetSocketAddress serverAddr, double failureProbability){
         this.transport = transport;
         this.serverAddr = serverAddr;
+        this.failureProbability = failureProbability;
         this.message_id = 0;
         this.random = new Random();
     }
@@ -72,31 +73,26 @@ public class Client {
                     .build();
 
             try {
-                ByteUnpacker.UnpackedMsg unpackedMsg = null;
-                for(int i=1;i<=5;i++) {
-                    this.transport.send(this.serverAddr, packer);
-                    System.out.println("message sent to server");
-                    while (true) {
-                        if (this.random.nextDouble() >= failureProbability) {
-                            unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
-                            break;
-                        } else {
-                            System.out.println("Simulating packet loss");
-                            Thread.sleep(2000);
-                            this.transport.send(this.serverAddr, packer);
-                        }
-                    }
-                    System.out.println("Message count: " + i);
-                    if (transport.checkStatus(unpackedMsg)) {
-                        String reply = unpackedMsg.getString(REPLY);
-                        System.out.println("Response from server: " + reply);
+                ByteUnpacker.UnpackedMsg unpackedMsg;
+                this.transport.send(this.serverAddr, packer);
+                System.out.println("message sent to server");
+                while (true) {
+                    if (this.random.nextDouble() >= failureProbability) {
+                        unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                        break;
                     } else {
-                        System.out.println("Failed to ping");
+                        System.out.println("Simulating packet loss");
+                        Thread.sleep(timeout);
+                        this.transport.send(this.serverAddr, packer);
                     }
-                    Thread.sleep(2000);
                 }
-            } catch (SocketTimeoutException e) {
-                System.out.print("Request timed out after 5 tries!");
+                if (transport.checkStatus(unpackedMsg)) {
+                    String reply = unpackedMsg.getString(REPLY);
+                    System.out.println("Response from server: " + reply);
+                } else {
+                    System.out.println("Failed to ping");
+                }
+                Thread.sleep(2000);
             } catch (IOException e) {
                 System.out.print(e);
             } catch (InterruptedException e) {
@@ -157,12 +153,21 @@ public class Client {
                     .setProperty(Method.Query.FACILITY.toString(), facility.toString())
                     .build();
 
-            transport.send(serverAddr, packer);
-
-            /** Add timeout here **/
+            ByteUnpacker.UnpackedMsg unpackedMsg;
 
             try {
-                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                this.transport.send(this.serverAddr, packer);
+                System.out.println("message sent to server");
+                while (true) {
+                    if (this.random.nextDouble() >= failureProbability) {
+                        unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                        break;
+                    } else {
+                        System.out.println("Simulating packet loss");
+                        Thread.sleep(timeout);
+                        this.transport.send(this.serverAddr, packer);
+                    }
+                }
 
                 if(transport.checkStatus(unpackedMsg)) {
                     String response = unpackedMsg.getString(REPLY);
@@ -173,6 +178,8 @@ public class Client {
 
             } catch (IOException e) {
                 System.out.print(e.getMessage());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         } catch(RuntimeException e) {
             System.out.println("Client.queryAvailability - Runtime Exception! " + e.getMessage());
@@ -294,26 +301,40 @@ public class Client {
     }
 
     public void changeBooking() {
-        String uuid = readLine("Please enter the confirmation ID of the booking: ");
+
+        UUID uuid;
+
+        while(true) {
+            try {
+                uuid = UUID.fromString(readLine("Please enter the confirmation ID of the booking: "));
+                break;
+            } catch (IllegalArgumentException e) {System.out.println("Please enter a valid confirmation ID!");}
+        }
         int offset = safeReadInt("Please enter the offset desired for this booking in minutes (negative for advancement, positive for postponement)\n(1 => 1min, 60 => 1hour, 3600 => 1 day): ");
 
         try {
-//            this.transport.send(this.serverAddr, main.common.Util.putInHashMapPacket(Method.Methods.CHANGE, payload));
             int message_id = this.getMessageId();
 
             BytePacker packer = new BytePacker.Builder()
                     .setProperty(SERVICE_ID, new OneByteInt(Method.CHANGE))
                     .setProperty(MESSAGE_ID, message_id)
-                    .setProperty(Method.Change.UUID.toString(), uuid)
+                    .setProperty(Method.Change.UUID.toString(), uuid.toString())
                     .setProperty(Method.Change.OFFSET.toString(), offset)
                     .build();
 
-            this.transport.send(serverAddr, packer);
-
-            /** Add timeout here **/
-
             try {
-                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                ByteUnpacker.UnpackedMsg unpackedMsg;
+                this.transport.send(serverAddr, packer);
+                while (true) {
+                    if (this.random.nextDouble() >= failureProbability) {
+                        unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                        break;
+                    } else {
+                        System.out.println("Simulating packet loss");
+                        Thread.sleep(timeout);
+                        this.transport.send(this.serverAddr, packer);
+                    }
+                }
 
                 if(transport.checkStatus(unpackedMsg)) {
                     String reply = unpackedMsg.getString(REPLY);
@@ -324,6 +345,8 @@ public class Client {
 
             } catch (IOException e) {
                 System.out.print(e);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
 
         } catch(RuntimeException e) {
@@ -432,7 +455,14 @@ public class Client {
 
     // an idempotent operation
     public void cancelBooking() {
-        String uuid = readLine("Please enter the confirmation ID of the booking: ");
+        UUID uuid;
+
+        while(true) {
+            try {
+                uuid = UUID.fromString(readLine("Please enter the confirmation ID of the booking: "));
+                break;
+            } catch (IllegalArgumentException e) {System.out.println("Please enter a valid booking UUID!");}
+        }
 
         try {
             int message_id = this.getMessageId();
@@ -440,7 +470,7 @@ public class Client {
             BytePacker packer = new BytePacker.Builder()
                     .setProperty(SERVICE_ID, new OneByteInt(Method.CANCEL))
                     .setProperty(MESSAGE_ID, message_id)
-                    .setProperty(Method.Cancel.UUID.toString(), uuid)
+                    .setProperty(Method.Cancel.UUID.toString(), uuid.toString())
                     .build();
 
             this.transport.send(serverAddr, packer);
@@ -467,7 +497,13 @@ public class Client {
 
     // a non-idempotent operation
     public void extendBooking() {
-        String uuid = readLine("Please enter the confirmation ID of the booking: ");
+        UUID uuid;
+        while(true) {
+            try {
+                uuid = UUID.fromString(readLine("Please enter the confirmation ID of the booking: "));
+                break;
+            } catch (IllegalArgumentException e) {System.out.println("Please enter a valid booking UUID!");}
+        }
         double extend = safeReadDouble("Please enter the extension desired for this booking in hours (30-minute block)\n(i.e. 30-minute => 0.5, 2-hours => 2): ");
         while (extend <= 0 || extend % 0.5 != 0.0) {
             extend = safeReadDouble("Your input is not in multiples of 0.5 or is <= 0!\nPlease enter the extension desired for this booking (in 30-minute block)\n(i.e. 30-minute => 0.5, 2-hours => 2): ");
@@ -479,7 +515,7 @@ public class Client {
             BytePacker packer = new BytePacker.Builder()
                     .setProperty(SERVICE_ID, new OneByteInt(Method.EXTEND))
                     .setProperty(MESSAGE_ID, message_id)
-                    .setProperty(Method.Extend.UUID.toString(), uuid)
+                    .setProperty(Method.Extend.UUID.toString(), uuid.toString())
                     .setProperty(Method.Extend.EXTEND.toString(), extend)
                     .build();
 
@@ -593,7 +629,7 @@ public class Client {
         return new Time(userDayChoice, userHourChoice, userMinuteChoice);
     }
 
-    public void debugTest() {
+    public void sendDuplicatePingsToServer() {
         try {
             String testmsg = readLine("Your message: ");
 
@@ -602,40 +638,46 @@ public class Client {
             BytePacker packer = new BytePacker.Builder()
                     .setProperty(SERVICE_ID, new OneByteInt(Method.PING))
                     .setProperty(MESSAGE_ID, message_id)
-                    .setProperty("pingMessage", testmsg)
+                    .setProperty(Method.Ping.PING.toString(), testmsg)
                     .build();
 
-            for(int counter=1;counter<=5;counter++) {
-                this.transport.send(this.serverAddr, packer);
-                System.out.println("Duplicate message sent: " + counter);
-
-                try {
-//                DatagramPacket p = transport.receive();
-//                byte[] data = p.getData();
-//                ByteUnpacker unpacker = new ByteUnpacker.Builder()
-//                        .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
-//                        .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
-//                        .setType("pingMessage", ByteUnpacker.TYPE.STRING)
-//                        .build();
-//
-//                ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
-                    ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
-
+            try {
+                ByteUnpacker.UnpackedMsg unpackedMsg = null;
+                for(int i=1;i<=5;i++) {
+                    this.transport.send(this.serverAddr, packer);
+                    System.out.println("message sent to server");
+                    while (true) {
+                        if (this.random.nextDouble() >= failureProbability) {
+                            unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                            break;
+                        } else {
+                            System.out.println("Simulating packet loss");
+                            Thread.sleep(2000);
+                            this.transport.send(this.serverAddr, packer);
+                        }
+                    }
+                    System.out.println("Message count: " + i);
                     if (transport.checkStatus(unpackedMsg)) {
                         String reply = unpackedMsg.getString(REPLY);
                         System.out.println("Response from server: " + reply);
                     } else {
                         System.out.println("Failed to ping");
                     }
-
-                } catch (SocketTimeoutException e) {
-                    System.out.print("Request timed out after 5 tries!");
-                } catch (IOException e) {
-                    System.out.print(e);
+                    Thread.sleep(2000);
                 }
+            } catch (IOException e) {
+                System.out.print(e);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         } catch (RuntimeException e) {
             System.out.println("Client.sendMessageToServer - Runtime Exception! " + e.getMessage());
         }
     }
+
+    //TODO: Implement test statements
+
+    public void sendDuplicateExtendsToServer() {}
+
+    public void sendDuplicateCancelsToServer() {}
 }

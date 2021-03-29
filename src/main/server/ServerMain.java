@@ -5,13 +5,27 @@ import main.common.network.Transport;
 
 import java.net.*;
 
+import static main.client.Util.readLine;
+import static main.client.Util.safeReadInt;
+
 
 public class ServerMain {
     public static void main(String[] args) throws SocketException {
         String serverHost = "127.0.0.1";
         int port = 49152;
-//        boolean atMostOnce = true;
         boolean atMostOnce = false;
+
+        System.out.print(
+                "0: At-Least-Once Server\n" +
+                        "1: At-Most-Once Server\n");
+        int serverChoice = safeReadInt("Server choice: ");
+        switch (serverChoice) {
+            case 0:
+                break;
+            case 1:
+                atMostOnce = true;
+                break;
+        }
 
         Transport server = new Transport(new DatagramSocket(new InetSocketAddress(serverHost, port)), 8192); // use CORBA Data Representation
         System.out.println("Listening on udp://" + serverHost + ":" + port);
@@ -19,9 +33,9 @@ public class ServerMain {
         Facilities facilities = new Facilities();
 
         if (atMostOnce) {
+            AtMostOnceHandler handler = new AtMostOnceHandler();
             System.out.print("Current server mode: At-Most-Once");
             try {
-                AtMostOnceHandler handler = new AtMostOnceHandler();
                 while (true) {
                     DatagramPacket p = server.receive();
                     if (p.getLength() != 0) {
@@ -35,9 +49,9 @@ public class ServerMain {
             }
         }
         else {
+            DefaultHandler handler = new DefaultHandler();
             System.out.print("Current server mode: At-Least-Once");
             try {
-                DefaultHandler handler = new DefaultHandler();
                 while (true) {
                     DatagramPacket p = server.receive();
                     if (p.getLength() != 0) {

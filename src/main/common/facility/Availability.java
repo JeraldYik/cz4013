@@ -53,7 +53,7 @@ public class Availability {
             newEnd = Time.subtract(foundBooking.getValue(), Math.abs(offset));
         }
 
-        // remove first further overlap calculation
+        // remove first for overlap calculation
         this.bookings.remove(u_uuid);
 
         // check for overlap

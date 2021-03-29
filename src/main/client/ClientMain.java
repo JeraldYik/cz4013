@@ -7,7 +7,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
-import static main.client.Util.safeReadInt;
+import static main.client.Util.*;
 
 public class ClientMain {
     public static void main(String[] args) throws SocketException {
@@ -16,7 +16,8 @@ public class ClientMain {
         int serverPort = 49152;
         int clientPort = 49153;
 
-        String MANUAL = "----------------------------------------------------------------\n" +
+        String MANUAL =
+                "----------------------------------------------------------------\n" +
                 "Please choose a service by typing [1-]:\n" +
                 "1: Query Availability of a Facility\n"+
                 "2: Add Booking to a Facility\n" +
@@ -24,13 +25,25 @@ public class ClientMain {
                 "4: Monitor Availability of a Facility\n" +
                 "5: (Idempotent) Cancel an active Booking\n" +
                 "6: (Non-Idempotent) Extend an active Booking time in 30-minute block\n" +
-                "7: Test RMI\n" +
+                "7: View available test statements\n" +
                 "8: Send a message to main.server\n" +
                 "9: Print the manual\n" +
                 "0: Stop the main.client\n";
 
+        String TEST =
+                "----------------------------------------------------------------\n" +
+                "Please choose a test function by typing [1-]:\n" +
+                "1: Send repeated ping requests with duplicate message IDs\n" +
+                "2: Send repeated booking cancellation requests with duplicate message IDs (non-idempotent)\n" +
+                "3: Send repeated booking extension requests with duplicate message IDs (idempotent)\n" +
+                "4: Back to main menu\n" +
+                "5: Print menu\n";
+
+
+        double failureProbability = safeReadDouble("Enter preferred server reply failure probability (0.0 - 1.0): ");
+
         DatagramSocket socket = new DatagramSocket(new InetSocketAddress(clientAddr, clientPort));
-        Client client = new Client(new Transport(socket, 8192), new InetSocketAddress(serverAddr, serverPort)); // use CORBA Data Representation
+        Client client = new Client(new Transport(socket, 8192), new InetSocketAddress(serverAddr, serverPort), failureProbability); // use CORBA Data Representation
 
         boolean terminate = false;
         System.out.print(MANUAL);
@@ -56,7 +69,27 @@ public class ClientMain {
                     client.extendBooking();
                     break;
                 case 7:
-                    client.testRMI(serverAddr, serverPort);
+                    boolean quit = false;
+                    System.out.println(TEST);
+                    while(!quit) {
+                        int testChoice = safeReadInt("Choose your function: ");
+                        switch (testChoice) {
+                            case 1:
+                                client.sendDuplicatePingsToServer();
+                                break;
+                            case 2:
+                                client.sendDuplicateCancelsToServer();
+                            case 3:
+                                client.sendDuplicateExtendsToServer();
+                                break;
+                            case 4:
+                                quit = true;
+                                break;
+                            case 5:
+                                System.out.println(TEST);
+                                break;
+                        }
+                    }
                     break;
                 case 8:
                     client.sendMessageToServer();

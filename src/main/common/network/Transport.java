@@ -9,6 +9,7 @@ import javax.swing.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.desktop.SystemSleepEvent;
 import java.io.IOException;
+import java.io.StreamCorruptedException;
 import java.net.*;
 import java.util.HashMap;
 import java.util.Arrays;
@@ -53,7 +54,7 @@ public class Transport {
     }
 
     public final ByteUnpacker.UnpackedMsg receivalProcedure(InetSocketAddress socketAddress, BytePacker packer, int messageId) throws IOException, SocketTimeoutException {
-        while(true) {
+        while (true) {
             try {
                 DatagramPacket reply = this.receive();
                 ByteUnpacker byteUnpacker = new ByteUnpacker.Builder()
@@ -66,8 +67,12 @@ public class Transport {
 
                 if (checkMsgId(messageId, unpackedMsg)) {
                     return unpackedMsg;
+                } else {
+                    throw new StreamCorruptedException();
                 }
-            } catch(IOException e) {
+            } catch (StreamCorruptedException e) {
+                System.out.println("Request and Reply IDs don't match!");
+            } catch (IOException e) {
                 System.out.println(e);
             }
         }
