@@ -111,15 +111,7 @@ public class Time implements Serializable {
         return new Time(day, hour, min);
     }
 
-//    public int getDay() {
-//        return this.day;
-//    }
-//
-//    public int getHour() {
-//        return this.hour;
-//    }
-//
-//    public int getMinute() {
-//        return this.minute;
-//    }
+    public String getDayAsName() {
+        return Days.values()[this.day].toString();
+    }
 }

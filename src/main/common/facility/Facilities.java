@@ -127,8 +127,4 @@ public class Facilities {
     public ArrayList<NodeInformation> clientsToUpdate(Facilities.Types t) {
         return this.monitors.get(t);
     }
-
-    public HashMap<Types, ArrayList<NodeInformation>> getMonitors() {
-        return monitors;
-    }
 }

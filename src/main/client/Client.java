@@ -123,26 +123,26 @@ public class Client {
         System.out.print(MANUAL);
         boolean terminate = false;
 
-        String facility = "";
+        Facilities.Types facility = null;
 
         try {
             while (!terminate) {
                 int userChoice = safeReadInt("Your choice of facility: ");
                 switch (userChoice) {
                     case 1:
-                        facility = Facilities.Types.LT1.toString();
+                        facility = Facilities.Types.LT1;
                         terminate = true;
                         break;
                     case 2:
-                        facility = Facilities.Types.LT2.toString();
+                        facility = Facilities.Types.LT2;
                         terminate = true;
                         break;
                     case 3:
-                        facility = Facilities.Types.MR1.toString();
+                        facility = Facilities.Types.MR1;
                         terminate = true;
                         break;
                     case 4:
-                        facility = Facilities.Types.MR2.toString();
+                        facility = Facilities.Types.MR2;
                         terminate = true;
                         break;
                     case 0:
@@ -159,7 +159,7 @@ public class Client {
             BytePacker packer = new BytePacker.Builder()
                     .setProperty(SERVICE_ID, new OneByteInt(Method.QUERY))
                     .setProperty(MESSAGE_ID, message_id)
-                    .setProperty(Method.Query.FACILITY.toString(), facility)
+                    .setProperty(Method.Query.FACILITY.toString(), facility.toString())
                     .build();
 
             transport.send(serverAddr, packer);
@@ -170,8 +170,8 @@ public class Client {
                 ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
 
                 if(transport.checkStatus(unpackedMsg)) {
-                    String reply = unpackedMsg.getString(REPLY);
-                    System.out.println("Response from server: " + reply);
+                    String response = unpackedMsg.getString(REPLY);
+                    this.printBookings(response, facility);
                 } else {
                     System.out.println("Failed to query facility");
                 }
@@ -409,7 +409,6 @@ public class Client {
 
                 try {
                     DatagramPacket p = this.transport.setNonZeroTimeoutAndReceive(remainingTimeout);
-
                     ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
                     if(transport.checkStatus(unpackedMsg)) {
                         String reply = unpackedMsg.getString(REPLY);
@@ -529,25 +528,23 @@ public class Client {
 //         }
     }
 
-    private void printBookings(ArrayList<Pair<Time, Time>> bookings, Facilities.Types t) {
+    private void printBookings(String response, Facilities.Types t) {
         if (t == null) {
             System.out.println("Facility Type is null for unknown reason");
             return;
         }
         System.out.println("Message received from server: ");
-        if (bookings.isEmpty()) {
+        if (response.isEmpty()) {
             System.out.println("No active bookings for " + t.toString());
         } else {
             System.out.println("For " + t.toString() + ":");
-            for (int bookingCount=1; bookingCount <= bookings.size(); bookingCount++) {
+            String[] bookings = response.split(Method.DELIMITER);
+            for (int bookingCount=1; bookingCount <= bookings.length; bookingCount++) {
                 System.out.format("---------------Booking %d---------------\n", bookingCount);
+                String[] startAndEnd = bookings[bookingCount-1].split("-");
 
-                Pair<Time, Time> timeTimePair = bookings.get(bookingCount-1);
-                Time startTime = timeTimePair.getKey();
-                Time endTime = timeTimePair.getValue();
-
-                System.out.println("Start Time: " + startTime);
-                System.out.println("End Time: " + endTime);
+                System.out.println("Start Time: " + startAndEnd[0]);
+                System.out.println("End Time: " + startAndEnd[1]);
             }
         }
     }

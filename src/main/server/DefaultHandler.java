@@ -12,6 +12,7 @@ import main.common.network.Transport;
 import java.net.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -45,7 +46,7 @@ public class DefaultHandler {
 
             ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
 
-            String pingMessage = unpackedMsg.getString("pingMessage");
+            String pingMessage = unpackedMsg.getString(Method.Ping.PING.toString());
             int messageId = unpackedMsg.getInteger(MESSAGE_ID);
 
             System.out.println("Received ping from client: " + pingMessage);
@@ -60,27 +61,29 @@ public class DefaultHandler {
 
         }
 
-//        else if (serviceRequested == (Method.QUERY)) {
-//
-//            ByteUnpacker unpacker = new ByteUnpacker.Builder()
-//                    .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
-//                    .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
-//                    .setType("facility", ByteUnpacker.TYPE.STRING)
-//                    .build();
-//
-//            ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
-//
-//            String facility = unpackedMsg.getString("facility");
-//            Facilities.Types t = Facilities.Types.valueOf(facility);
-//
-//
-//            // incomplete
-//            HashMap<String, Object> o = (HashMap<String, Object>) req.packet.get(Method.PAYLOAD);
-//            Facilities.Types t = (Facilities.Types) o.get(Method.Query.FACILITY.toString());
-//            HashMap<UUID, Pair<Time, Time>> bookings = facilities.queryAvailability(t);
-//            server.send(req.address, main.common.Util.putInHashMapPacket(Method.Methods.QUERY, bookings));
-//            System.out.println("Query sent to main.client.");
-//        }
+        else if (serviceRequested == (Method.QUERY)) {
+
+            ByteUnpacker unpacker = new ByteUnpacker.Builder()
+                    .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
+                    .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
+                    .setType(Method.Query.FACILITY.toString(), ByteUnpacker.TYPE.STRING)
+                    .build();
+
+            ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
+
+            OneByteInt status = new OneByteInt(0);
+            int messageId = unpackedMsg.getInteger(MESSAGE_ID);
+
+            String facility = unpackedMsg.getString(Method.Query.FACILITY.toString());
+            Facilities.Types t = Facilities.Types.valueOf(facility);
+            ArrayList<Pair<Time, Time>> bookings = facilities.queryAvailability(t);
+
+            String reply = parseBookingsToString(bookings);
+            BytePacker replyMessageClient = server.generateReply(status, messageId, reply);
+
+            server.send(new InetSocketAddress(clientAddr, clientPort), replyMessageClient);
+            System.out.println("Query sent to main.client.");
+        }
 
         else if (serviceRequested == Method.ADD) {
 
@@ -149,8 +152,8 @@ public class DefaultHandler {
 
             ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
 
-            int monitorInterval = unpackedMsg.getInteger("monitorInterval");
-            String facility = unpackedMsg.getString("facility");
+            int monitorInterval = unpackedMsg.getInteger(Method.Monitor.INTERVAL.toString());
+            String facility = unpackedMsg.getString(Method.Monitor.FACILITY.toString());
             Facilities.Types t = Facilities.Types.valueOf(facility);
             String clientAddress = clientAddr.toString();
 
@@ -179,8 +182,8 @@ public class DefaultHandler {
 
             ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
 
-            String uuid = unpackedMsg.getString("uuid");
-            double extendTime = unpackedMsg.getDouble("extendTime");
+            String uuid = unpackedMsg.getString(Method.Extend.UUID.toString());
+            double extendTime = unpackedMsg.getDouble(Method.Extend.EXTEND.toString());
             Pair<String, Facilities.Types> msg = facilities.extendBooking(uuid, extendTime);
             String replyMsg = "";
 
@@ -212,7 +215,7 @@ public class DefaultHandler {
 
             ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
 
-            String uuid = unpackedMsg.getString("uuid");
+            String uuid = unpackedMsg.getString(Method.Cancel.UUID.toString());
             Pair<String, Facilities.Types> msg = facilities.cancelBooking(uuid);
             String replyMsg = "";
 
@@ -242,4 +245,34 @@ public class DefaultHandler {
         System.out.println("-----------------");
     }
 
+//    private static void callback(Facilities facilities, Facilities.Types t, Transport server) {
+//        if (t == null) return;
+//        ArrayList<NodeInformation> clientsToUpdate = facilities.clientsToUpdate(t);
+//        for (NodeInformation n : clientsToUpdate) {
+//            ArrayList<Pair<Time, Time>> bookings = facilities.queryAvailability(t);
+//            server.send(n.getInetSocketAddress(), main.common.Util.putInHashMapPacket(Method.Methods.MONITOR, bookings));
+//        }
+//    }
+
+    private static String parseBookingsToString(ArrayList<Pair<Time, Time>> bookings) {
+        StringBuilder sb = new StringBuilder();
+        for (Pair<Time, Time> b : bookings) {
+            Time start = b.getKey();
+            Time end = b.getValue();
+            sb.append(start.getDayAsName());
+            sb.append("/");
+            sb.append(start.hour);
+            sb.append("/");
+            sb.append(start.minute);
+            sb.append("-");
+            sb.append(end.getDayAsName());
+            sb.append("/");
+            sb.append(end.hour);
+            sb.append("/");
+            sb.append(end.minute);
+            /** delimiter **/
+            sb.append(Method.DELIMITER);
+        }
+        return sb.toString();
+    }
 }

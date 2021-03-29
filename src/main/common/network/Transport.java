@@ -22,11 +22,11 @@ public class Transport {
     DatagramSocket socket;
     int bufferLen;
     byte[] buffer;
-    protected static final String STATUS = "status";
-    protected static final String SERVICE_ID = "serviceId";
-    protected static final String MESSAGE_ID = "messageId";
-    protected static final String REPLY = "reply";
 
+    protected static final String STATUS = "STATUS";
+    protected static final String SERVICE_ID = "SERVICEID";
+    protected static final String MESSAGE_ID = "MESSAGEID";
+    protected static final String REPLY = "REPLY";
 
     public Transport(DatagramSocket socket, int bufferLen) {
         this.socket = socket;
