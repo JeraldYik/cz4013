@@ -10,7 +10,7 @@ import java.net.SocketException;
 
 public class Main {
     public static void main(String[] args) throws SocketException {
-        String serverHost  = "127.0.0.1";
+        String serverHost = "127.0.0.1";
         int port = 49152;
         boolean atMostOnce = false;
 
@@ -20,34 +20,39 @@ public class Main {
         Facilities facilities = new Facilities();
 
         /** maybe there's no need for rmi architecture
-        try {
-            Servant servant = new Servant();
-//            Registry r = LocateRegistry.createRegistry(port);
+         try {
+         Servant servant = new Servant();
+         //            Registry r = LocateRegistry.createRegistry(port);
 
-            RMIRegistry registry = RMIRegistry.getInstance();
-            String rmiName = "rmi://" + serverHost + ":" + port + "/City";
-//            Naming.rebind(rmiName, servant);
-            registry.rebind(rmiName, servant);
+         RMIRegistry registry = RMIRegistry.getInstance();
+         String rmiName = "rmi://" + serverHost + ":" + port + "/City";
+         //            Naming.rebind(rmiName, servant);
+         registry.rebind(rmiName, servant);
 
-        } catch (RemoteException e) {
-            System.out.println("Remote Exception! " + e.getMessage());
-        }
-//        catch (MalformedURLException e) {
-//            System.out.println("MalformedURL Exception! " + e.getMessage());
-//        }
-        catch (Exception e) {
-            System.out.println("Exception! " + e.getMessage());
-        }
+         } catch (RemoteException e) {
+         System.out.println("Remote Exception! " + e.getMessage());
+         }
+         //        catch (MalformedURLException e) {
+         //            System.out.println("MalformedURL Exception! " + e.getMessage());
+         //        }
+         catch (Exception e) {
+         System.out.println("Exception! " + e.getMessage());
+         }
          **/
 
-        try {
-            while (true) {
-                RawMessage req = server.serverReceive();
-                Handler.handle(server, facilities, req);
+        if (atMostOnce) {
+
+            // TODO: Add server-side At-Most-Once functionality
+
+        } else {
+            try {
+                while (true) {
+                    RawMessage req = server.serverReceive();
+                    Handler.handle(server, facilities, req);
+                }
+            } catch (RuntimeException e) {
+                System.out.println("Server.Main - Runtime Exception! " + e.getCause());
             }
-        } catch(RuntimeException e) {
-            System.out.println("Server.Main - Runtime Exception! " + e.getCause());
         }
     }
-
 }
