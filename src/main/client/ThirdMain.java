@@ -8,12 +8,12 @@ import java.net.SocketException;
 
 import static main.client.Util.safeReadInt;
 
-public class SecondMain {
+public class ThirdMain {
     public static void main(String[] args) throws SocketException {
         String clientAddr = "0.0.0.0";
         String serverAddr = "127.0.0.1";
         int serverPort = 49152;
-        int clientPort = 49154;
+        int clientPort = 49155;
 
         String MANUAL = "----------------------------------------------------------------\n" +
                 "Please choose a service by typing [1-]:\n" +

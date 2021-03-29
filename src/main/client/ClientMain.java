@@ -46,14 +46,14 @@ public class ClientMain {
                 case 3:
                     client.changeBooking();
                     break;
-//                case 4:
-//                    client.monitorAvailability();
-//                    break;
-                case 6:
-                    client.extendBooking();
+                case 4:
+                    client.monitorAvailability();
                     break;
                 case 5:
                     client.cancelBooking();
+                    break;
+                case 6:
+                    client.extendBooking();
                     break;
                 case 7:
                     client.testRMI(serverAddr, serverPort);

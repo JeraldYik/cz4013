@@ -22,27 +22,6 @@ public class AtMostOnceServerMain {
 
         AtMostOnceHandler handler = new AtMostOnceHandler();
 
-        /** maybe there's no need for rmi architecture
-        try {
-            Servant servant = new Servant();
-//            Registry r = LocateRegistry.createRegistry(port);
-
-            RMIRegistry registry = RMIRegistry.getInstance();
-            String rmiName = "rmi://" + serverHost + ":" + port + "/City";
-//            Naming.rebind(rmiName, servant);
-            registry.rebind(rmiName, servant);
-
-        } catch (RemoteException e) {
-            System.out.println("Remote Exception! " + e.getMessage());
-        }
-//        catch (MalformedURLException e) {
-//            System.out.println("MalformedURL Exception! " + e.getMessage());
-//        }
-        catch (Exception e) {
-            System.out.println("Exception! " + e.getMessage());
-        }
-         **/
-
         try {
             while (true) {
 

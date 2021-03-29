@@ -6,9 +6,9 @@
 
 - [x] Idempotent function: Cancel active booking
 
-- [ ] Non-idempotent function: Extend active booking time in 30-minute block
+- [x] Non-idempotent function: Extend active booking time in 30-minute block
 
-- [ ] Monitor Availability Function
+- [x] Monitor Availability Function
 
 - [x] Display appropriate output to User for Query Availability
 
