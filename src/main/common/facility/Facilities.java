@@ -49,8 +49,8 @@ public class Facilities {
     /** Return null if unsuccessful **/
     public String addBooking(Types t, Time start, Time end) {
         UUID uuid = this.availability.get(t).addBooking(start, end);
-        System.out.println("starting time: " + start);
-        System.out.println("ending time: " + end);
+        System.out.println("Starting time: " + start);
+        System.out.println("Ending time: " + end);
         if (uuid == null) return null;
         else {
             this.bookings.get(t).add(uuid);
