@@ -81,6 +81,7 @@ public class Availability {
         int extendMin = (int) extend * 60;
         // do the extension
         Time newEnd = Time.add(foundBooking.getValue(), extendMin);
+        System.out.println(newEnd);
         if (newEnd == null) return new Pair("Failure! Booking exceeds time frame of the week.", false);
 
         // remove first further overlap calculation

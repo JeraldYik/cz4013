@@ -65,16 +65,19 @@ public class Time {
         int numMinutes = offset;
 
         min += numMinutes;
-        if (min >= 60) {
+        while (min >= 60) {
             hour++;
             min -= 60;
         }
         hour += numHours;
-        if (hour >= 24) {
+        while (hour >= 24) {
             day++;
             hour -= 24;
         }
         day += numDays;
+        System.out.println(day);
+        System.out.println(hour);
+        System.out.println(min);
         if (day > 7) {
             return null;
         }
@@ -93,12 +96,12 @@ public class Time {
         int numMinutes = offset;
 
         min -= numMinutes;
-        if (min < 0) {
+        while (min < 0) {
             hour--;
             min += 60;
         }
         hour -= numHours;
-        if (hour < 0) {
+        while (hour < 0) {
             day--;
             hour += 24;
         }
