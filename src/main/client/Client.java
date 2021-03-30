@@ -5,21 +5,17 @@ import main.common.facility.Facilities;
 import main.common.facility.Time;
 import main.common.message.BytePacker;
 import main.common.message.ByteUnpacker;
-
 import main.common.message.OneByteInt;
 import main.common.network.Method;
-
 import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
 import java.time.temporal.ChronoUnit;
 import main.common.network.*;
-
 import java.lang.invoke.MethodHandle;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
-
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -28,19 +24,16 @@ import java.util.SortedSet;
 import java.util.UUID;
 import java.util.Arrays;
 import java.util.Random;
-
 import main.common.network.*;
-
 import javax.xml.crypto.Data;
-
 import static main.client.Util.*;
 
 public class Client {
 
-    private SocketAddress serverAddr;
+    private InetSocketAddress serverAddr;
     private final Transport transport;
     private int message_id;
-    private final double failureProbability = 0.0;
+    private double failureProbability;
     private final int timeout = 2000;
     private Random random;
 
@@ -50,18 +43,19 @@ public class Client {
     protected static final String REPLY = "REPLY";
 
 
-    public Client(Transport transport, SocketAddress serverAddr){
+    public Client(Transport transport, InetSocketAddress serverAddr, double failureProbability) {
         this.transport = transport;
         this.serverAddr = serverAddr;
+        this.failureProbability = failureProbability;
         this.message_id = 0;
         this.random = new Random();
     }
 
-    public int getMessageId(){
+    public int getMessageId() {
         return message_id++;
     }
 
-    public void setMessageId(int msg_id){
+    public void setMessageId(int msg_id) {
         this.message_id = msg_id;
     }
 
@@ -78,30 +72,27 @@ public class Client {
                     .setProperty(Method.Ping.PING.toString(), testmsg)
                     .build();
 
-            System.out.println("testmsg: " + testmsg);
-
             try {
                 ByteUnpacker.UnpackedMsg unpackedMsg;
                 this.transport.send(this.serverAddr, packer);
                 System.out.println("message sent to server");
-                while(true) {
+                while (true) {
                     if (this.random.nextDouble() >= failureProbability) {
                         unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
                         break;
                     } else {
                         System.out.println("Simulating packet loss");
-                        Thread.sleep(2000);
+                        Thread.sleep(timeout);
                         this.transport.send(this.serverAddr, packer);
                     }
                 }
-                if(transport.checkStatus(unpackedMsg)) {
+                if (transport.checkStatus(unpackedMsg)) {
                     String reply = unpackedMsg.getString(REPLY);
                     System.out.println("Response from server: " + reply);
                 } else {
                     System.out.println("Failed to ping");
                 }
-            } catch (SocketTimeoutException e) {
-                System.out.print("Request timed out after 5 tries!");
+                Thread.sleep(2000);
             } catch (IOException e) {
                 System.out.print(e);
             } catch (InterruptedException e) {
@@ -162,14 +153,23 @@ public class Client {
                     .setProperty(Method.Query.FACILITY.toString(), facility.toString())
                     .build();
 
-            transport.send(serverAddr, packer);
-
-            /** Add timeout here **/
+            ByteUnpacker.UnpackedMsg unpackedMsg;
 
             try {
-                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                this.transport.send(this.serverAddr, packer);
+                System.out.println("message sent to server");
+                while (true) {
+                    if (this.random.nextDouble() >= failureProbability) {
+                        unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                        break;
+                    } else {
+                        System.out.println("Simulating packet loss");
+                        Thread.sleep(timeout);
+                        this.transport.send(this.serverAddr, packer);
+                    }
+                }
 
-                if(transport.checkStatus(unpackedMsg)) {
+                if (transport.checkStatus(unpackedMsg)) {
                     String response = unpackedMsg.getString(REPLY);
                     this.printBookings(response, facility);
                 } else {
@@ -178,8 +178,10 @@ public class Client {
 
             } catch (IOException e) {
                 System.out.print(e.getMessage());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-        } catch(RuntimeException e) {
+        } catch (RuntimeException e) {
             System.out.println("Client.queryAvailability - Runtime Exception! " + e.getMessage());
         }
     }
@@ -200,7 +202,7 @@ public class Client {
         while (!Time.compare(start, end)) {
             System.out.println("End time must be larger than start time!");
             System.out.println("Start time: " + start);
-            System.out.println("Invalid end time entered: " + end  + "\n");
+            System.out.println("Invalid end time entered: " + end + "\n");
             end = getTime("Please enter a larger end time: ");
         }
         startDay = start.day;
@@ -269,7 +271,7 @@ public class Client {
 
             try {
                 ByteUnpacker.UnpackedMsg unpackedMsg;
-                while(true) {
+                while (true) {
                     if (this.random.nextDouble() >= failureProbability) {
                         unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
                         break;
@@ -280,9 +282,9 @@ public class Client {
                     }
                 }
 
-                if(transport.checkStatus(unpackedMsg)) {
+                if (transport.checkStatus(unpackedMsg)) {
                     String reply = unpackedMsg.getString(REPLY);
-                    System.out.println("UUID of booking: " + reply);
+                    System.out.println(reply);
                 } else {
                     System.out.println("Failed to add booking");
                 }
@@ -293,34 +295,50 @@ public class Client {
                 e.printStackTrace();
             }
 
-        } catch(RuntimeException e) {
+        } catch (RuntimeException e) {
             System.out.println("Client.addBooking - Runtime Exception! " + e.getMessage());
         }
     }
 
     public void changeBooking() {
-        String uuid = readLine("Please enter the confirmation ID of the booking: ");
+
+        UUID uuid;
+
+        while (true) {
+            try {
+                uuid = UUID.fromString(readLine("Please enter the confirmation ID of the booking: "));
+                break;
+            } catch (IllegalArgumentException e) {
+                System.out.println("Please enter a valid confirmation ID!");
+            }
+        }
         int offset = safeReadInt("Please enter the offset desired for this booking in minutes (negative for advancement, positive for postponement)\n(1 => 1min, 60 => 1hour, 3600 => 1 day): ");
 
         try {
-//            this.transport.send(this.serverAddr, main.common.Util.putInHashMapPacket(Method.Methods.CHANGE, payload));
             int message_id = this.getMessageId();
 
             BytePacker packer = new BytePacker.Builder()
                     .setProperty(SERVICE_ID, new OneByteInt(Method.CHANGE))
                     .setProperty(MESSAGE_ID, message_id)
-                    .setProperty(Method.Change.UUID.toString(), uuid)
+                    .setProperty(Method.Change.UUID.toString(), uuid.toString())
                     .setProperty(Method.Change.OFFSET.toString(), offset)
                     .build();
 
-            this.transport.send(serverAddr, packer);
-
-            /** Add timeout here **/
-
             try {
-                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                ByteUnpacker.UnpackedMsg unpackedMsg;
+                this.transport.send(serverAddr, packer);
+                while (true) {
+                    if (this.random.nextDouble() >= failureProbability) {
+                        unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                        break;
+                    } else {
+                        System.out.println("Simulating packet loss");
+                        Thread.sleep(timeout);
+                        this.transport.send(this.serverAddr, packer);
+                    }
+                }
 
-                if(transport.checkStatus(unpackedMsg)) {
+                if (transport.checkStatus(unpackedMsg)) {
                     String reply = unpackedMsg.getString(REPLY);
                     System.out.println("Response from server: " + reply);
                 } else {
@@ -329,9 +347,11 @@ public class Client {
 
             } catch (IOException e) {
                 System.out.print(e);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
 
-        } catch(RuntimeException e) {
+        } catch (RuntimeException e) {
             System.out.println("Client.changeBooking - Runtime Exception! " + e.getMessage());
         }
     }
@@ -343,7 +363,7 @@ public class Client {
 
     public void monitorAvailability() {
         boolean terminate = false;
-        String facility = "";
+        Facilities.Types facility = null;
         int monitorInterval = safeReadInt("Please enter your monitor interval in minutes\n(1 => 1min, 60 => 1hour, 3600 => 1 day): ");
 
         String MANUAL = "----------------------------------------------------------------\n" +
@@ -355,25 +375,24 @@ public class Client {
                 "0: Exit and perform another query\n";
         System.out.print(MANUAL);
 
-        Facilities.Types t = null;
         try {
             while (!terminate) {
                 int userChoice = safeReadInt("Your choice of facility: ");
                 switch (userChoice) {
                     case 1:
-                        facility = Facilities.Types.LT1.toString();
+                        facility = Facilities.Types.LT1;
                         terminate = true;
                         break;
                     case 2:
-                        facility = Facilities.Types.LT2.toString();
+                        facility = Facilities.Types.LT2;
                         terminate = true;
                         break;
                     case 3:
-                        facility = Facilities.Types.MR1.toString();
+                        facility = Facilities.Types.MR1;
                         terminate = true;
                         break;
                     case 4:
-                        facility = Facilities.Types.MR2.toString();
+                        facility = Facilities.Types.MR2;
                         terminate = true;
                         break;
                     case 0:
@@ -387,10 +406,10 @@ public class Client {
             int message_id = this.getMessageId();
 
             BytePacker packer = new BytePacker.Builder()
-                    .setProperty(SERVICE_ID, new OneByteInt(Method.EXTEND))
+                    .setProperty(SERVICE_ID, new OneByteInt(Method.MONITOR))
                     .setProperty(MESSAGE_ID, message_id)
                     .setProperty(Method.Monitor.INTERVAL.toString(), monitorInterval)
-                    .setProperty(Method.Monitor.FACILITY.toString(), facility)
+                    .setProperty(Method.Monitor.FACILITY.toString(), facility.toString())
                     .build();
 
             this.transport.send(serverAddr, packer);
@@ -408,14 +427,21 @@ public class Client {
                 int remainingTimeout = (int) ChronoUnit.MILLIS.between(now, end);
 
                 try {
-                    DatagramPacket p = this.transport.setNonZeroTimeoutAndReceive(remainingTimeout);
-                    ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
-                    if(transport.checkStatus(unpackedMsg)) {
+                    ByteUnpacker.UnpackedMsg unpackedMsg = transport.setNonZeroTimeoutReceivalProcedure(remainingTimeout, serverAddr, packer, message_id);
+                    if (transport.checkStatus(unpackedMsg)) {
                         String reply = unpackedMsg.getString(REPLY);
+                        /** Do check for monitor ping response, or actual updates on monitoring **/
+//                        if () {
+//
+//                        } else {
+//
+//                        }
                         System.out.println("Message received from server: " + reply);
                     } else {
-//                        printBookings((ArrayList<Pair<Time, Time>>) payloadFromServer, t);
+//                        System.out.println("Failed to query facility");
                     }
+//                    String response = unpackedMsg.getString(REPLY);
+//                    this.printBookings(response, facility);
 
                 } catch (IOException e) {
                     System.out.print(e);
@@ -431,16 +457,24 @@ public class Client {
 
     // an idempotent operation
     public void cancelBooking() {
-        String uuid = readLine("Please enter the confirmation ID of the booking: ");
+        UUID uuid;
+
+        while (true) {
+            try {
+                uuid = UUID.fromString(readLine("Please enter the confirmation ID of the booking: "));
+                break;
+            } catch (IllegalArgumentException e) {
+                System.out.println("Please enter a valid booking UUID!");
+            }
+        }
 
         try {
-
             int message_id = this.getMessageId();
 
             BytePacker packer = new BytePacker.Builder()
                     .setProperty(SERVICE_ID, new OneByteInt(Method.CANCEL))
                     .setProperty(MESSAGE_ID, message_id)
-                    .setProperty(Method.Cancel.UUID.toString(), uuid)
+                    .setProperty(Method.Cancel.UUID.toString(), uuid.toString())
                     .build();
 
             this.transport.send(serverAddr, packer);
@@ -449,7 +483,7 @@ public class Client {
             try {
                 ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
 
-                if(transport.checkStatus(unpackedMsg)) {
+                if (transport.checkStatus(unpackedMsg)) {
                     String reply = unpackedMsg.getString(REPLY);
                     System.out.println("Response from server: " + reply);
                 } else {
@@ -467,32 +501,36 @@ public class Client {
 
     // a non-idempotent operation
     public void extendBooking() {
-        String uuid = readLine("Please enter the confirmation ID of the booking: ");
+        UUID uuid;
+        while (true) {
+            try {
+                uuid = UUID.fromString(readLine("Please enter the confirmation ID of the booking: "));
+                break;
+            } catch (IllegalArgumentException e) {
+                System.out.println("Please enter a valid booking UUID!");
+            }
+        }
         double extend = safeReadDouble("Please enter the extension desired for this booking in hours (30-minute block)\n(i.e. 30-minute => 0.5, 2-hours => 2): ");
         while (extend <= 0 || extend % 0.5 != 0.0) {
             extend = safeReadDouble("Your input is not in multiples of 0.5 or is <= 0!\nPlease enter the extension desired for this booking (in 30-minute block)\n(i.e. 30-minute => 0.5, 2-hours => 2): ");
         }
 
-
         try {
-
             int message_id = this.getMessageId();
 
             BytePacker packer = new BytePacker.Builder()
                     .setProperty(SERVICE_ID, new OneByteInt(Method.EXTEND))
                     .setProperty(MESSAGE_ID, message_id)
-                    .setProperty(Method.Extend.UUID.toString(), uuid)
+                    .setProperty(Method.Extend.UUID.toString(), uuid.toString())
                     .setProperty(Method.Extend.EXTEND.toString(), extend)
                     .build();
 
             this.transport.send(serverAddr, packer);
 
-            /** Add timeout here **/
-
             try {
                 ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
 
-                if(transport.checkStatus(unpackedMsg)) {
+                if (transport.checkStatus(unpackedMsg)) {
                     String reply = unpackedMsg.getString(REPLY);
                     System.out.println("Response from server: " + reply);
                 } else {
@@ -503,7 +541,7 @@ public class Client {
                 System.out.print(e);
             }
 
-        } catch(RuntimeException e) {
+        } catch (RuntimeException e) {
             System.out.println("Client.extendBooking - Runtime Exception! " + e.getMessage());
         }
     }
@@ -538,9 +576,9 @@ public class Client {
         } else {
             System.out.println("For " + t.toString() + ":");
             String[] bookings = response.split(Method.DELIMITER);
-            for (int bookingCount=1; bookingCount <= bookings.length; bookingCount++) {
+            for (int bookingCount = 1; bookingCount <= bookings.length; bookingCount++) {
                 System.out.format("---------------Booking %d---------------\n", bookingCount);
-                String[] startAndEnd = bookings[bookingCount-1].split("-");
+                String[] startAndEnd = bookings[bookingCount - 1].split("-");
 
                 System.out.println("Start Time: " + startAndEnd[0]);
                 System.out.println("End Time: " + startAndEnd[1]);
@@ -594,7 +632,9 @@ public class Client {
         return new Time(userDayChoice, userHourChoice, userMinuteChoice);
     }
 
-    public void debugTest() {
+    /* TODO: Implement test statements */
+
+    public void sendDuplicatePingsToServer() {
         try {
             String testmsg = readLine("Your message: ");
 
@@ -603,40 +643,137 @@ public class Client {
             BytePacker packer = new BytePacker.Builder()
                     .setProperty(SERVICE_ID, new OneByteInt(Method.PING))
                     .setProperty(MESSAGE_ID, message_id)
-                    .setProperty("pingMessage", testmsg)
+                    .setProperty(Method.Ping.PING.toString(), testmsg)
                     .build();
 
-            for(int counter=1;counter<=5;counter++) {
-                this.transport.send(this.serverAddr, packer);
-                System.out.println("Duplicate message sent: " + counter);
-
-                try {
-//                DatagramPacket p = transport.receive();
-//                byte[] data = p.getData();
-//                ByteUnpacker unpacker = new ByteUnpacker.Builder()
-//                        .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
-//                        .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
-//                        .setType("pingMessage", ByteUnpacker.TYPE.STRING)
-//                        .build();
-//
-//                ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
-                    ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
-
+            try {
+                ByteUnpacker.UnpackedMsg unpackedMsg = null;
+                for (int i = 1; i <= 5; i++) {
+                    this.transport.send(this.serverAddr, packer);
+                    System.out.println("message sent to server");
+                    while (true) {
+                        if (this.random.nextDouble() >= failureProbability) {
+                            unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                            break;
+                        } else {
+                            System.out.println("Simulating packet loss");
+                            Thread.sleep(2000);
+                            this.transport.send(this.serverAddr, packer);
+                        }
+                    }
+                    System.out.println("Message count: " + i);
                     if (transport.checkStatus(unpackedMsg)) {
                         String reply = unpackedMsg.getString(REPLY);
                         System.out.println("Response from server: " + reply);
                     } else {
                         System.out.println("Failed to ping");
                     }
-
-                } catch (SocketTimeoutException e) {
-                    System.out.print("Request timed out after 5 tries!");
-                } catch (IOException e) {
-                    System.out.print(e);
+                    Thread.sleep(2000);
                 }
+            } catch (IOException e) {
+                System.out.print(e);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         } catch (RuntimeException e) {
             System.out.println("Client.sendMessageToServer - Runtime Exception! " + e.getMessage());
+        }
+    }
+
+    public void sendDuplicateExtendsToServer() {
+        UUID uuid;
+        while (true) {
+            try {
+                uuid = UUID.fromString(readLine("Please enter the confirmation ID of the booking: "));
+                break;
+            } catch (IllegalArgumentException e) {
+                System.out.println("Please enter a valid booking UUID!");
+            }
+        }
+        double extend = safeReadDouble("Please enter the extension desired for this booking in hours (30-minute block)\n(i.e. 30-minute => 0.5, 2-hours => 2): ");
+        while (extend <= 0 || extend % 0.5 != 0.0) {
+            extend = safeReadDouble("Your input is not in multiples of 0.5 or is <= 0!\nPlease enter the extension desired for this booking (in 30-minute block)\n(i.e. 30-minute => 0.5, 2-hours => 2): ");
+        }
+
+        try {
+            int message_id = this.getMessageId();
+
+            BytePacker packer = new BytePacker.Builder()
+                    .setProperty(SERVICE_ID, new OneByteInt(Method.EXTEND))
+                    .setProperty(MESSAGE_ID, message_id)
+                    .setProperty(Method.Extend.UUID.toString(), uuid.toString())
+                    .setProperty(Method.Extend.EXTEND.toString(), extend)
+                    .build();
+
+            for (int i = 1; i <= 5; i++) {
+                this.transport.send(serverAddr, packer);
+
+                /** Add timeout here **/
+
+                try {
+                    ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+
+                    if (transport.checkStatus(unpackedMsg)) {
+                        String reply = unpackedMsg.getString(REPLY);
+                        System.out.println("Response from server: " + reply);
+                    } else {
+                        System.out.println("Failed to extend booking");
+                    }
+
+                } catch (IOException e) {
+                    System.out.print(e);
+
+                }
+            }
+        } catch (RuntimeException e) {
+            System.out.println("Client.extendBooking - Runtime Exception! " + e.getMessage());
+        }
+    }
+
+    public void sendDuplicateCancelsToServer() {
+        UUID uuid;
+
+        while (true) {
+            try {
+                uuid = UUID.fromString(readLine("Please enter the confirmation ID of the booking: "));
+                break;
+            } catch (IllegalArgumentException e) {
+                System.out.println("Please enter a valid booking UUID!");
+            }
+        }
+
+        try {
+            int message_id = this.getMessageId();
+
+            BytePacker packer = new BytePacker.Builder()
+                    .setProperty(SERVICE_ID, new OneByteInt(Method.CANCEL))
+                    .setProperty(MESSAGE_ID, message_id)
+                    .setProperty(Method.Cancel.UUID.toString(), uuid.toString())
+                    .build();
+
+            try {
+                for (int i = 1; i <= 5; i++) {
+                    this.transport.send(this.serverAddr, packer);
+                    System.out.println("Message count: " + i);
+
+                    ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+
+                    if (transport.checkStatus(unpackedMsg)) {
+                        String reply = unpackedMsg.getString(REPLY);
+                        System.out.println("Response from server: " + reply);
+                    } else {
+                        System.out.println("Failed to cancel booking");
+                    }
+                }
+            } catch (RuntimeException e) {
+                System.out.println(("Client.cancelBooking - Runtime Exception! " + e.getMessage()));
+            } catch (SocketTimeoutException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } catch (RuntimeException e) {
+            System.out.println("Client.cancelBooking - Runtime Exception! " + e.getMessage());
         }
     }
 }

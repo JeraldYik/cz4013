@@ -2,6 +2,7 @@ package main.server;
 
 import javafx.util.Pair;
 import main.common.facility.Facilities;
+import main.common.facility.NodeInformation;
 import main.common.facility.Time;
 import main.common.message.BytePacker;
 import main.common.message.ByteUnpacker;
@@ -24,11 +25,10 @@ public class DefaultHandler {
     protected static final String REPLY = "REPLY";
 
     public static void handle(Transport server, Facilities facilities, DatagramPacket p) {
-        facilities.deregister();
 
+        facilities.deregister();
         byte[] data = p.getData();
-        InetAddress clientAddr = p.getAddress();
-        int clientPort = p.getPort();
+        InetSocketAddress clientAddr = (InetSocketAddress) p.getSocketAddress();
         int serviceRequested = data[0];
 
         System.out.println("Service requested by client: " + serviceRequested);
@@ -36,7 +36,7 @@ public class DefaultHandler {
         System.out.println("Method: " + serviceRequested);
 
         if (serviceRequested == Method.PING) {
-
+            System.out.println("in ping");
             // unpack data
             ByteUnpacker unpacker = new ByteUnpacker.Builder()
                     .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
@@ -52,10 +52,10 @@ public class DefaultHandler {
             System.out.println("Received ping from client: " + pingMessage);
 
             OneByteInt status = new OneByteInt(0);
-            String reply = String.format("From main.server: ping received! Message: " + pingMessage);
+            String reply = String.format("From main.server: ping received!\nMessage: " + pingMessage);
             BytePacker replyMessageClient = server.generateReply(status, messageId, reply);
 
-            server.send(new InetSocketAddress(clientAddr, clientPort), replyMessageClient);
+            server.send(clientAddr, replyMessageClient);
 
             System.out.println("Ping response sent to main.client.");
 
@@ -81,7 +81,7 @@ public class DefaultHandler {
             String reply = parseBookingsToString(bookings);
             BytePacker replyMessageClient = server.generateReply(status, messageId, reply);
 
-            server.send(new InetSocketAddress(clientAddr, clientPort), replyMessageClient);
+            server.send(clientAddr, replyMessageClient);
             System.out.println("Query sent to main.client.");
 
         }
@@ -117,15 +117,19 @@ public class DefaultHandler {
 
             String uuid = facilities.addBooking(t, start, end);
 
+            String message = uuid == null
+                    ? "Booking cannot be added due to clashes with existing bookings"
+                    : "UUID of booking: " + uuid;
+
             int messageId = unpackedMsg.getInteger(MESSAGE_ID);
             OneByteInt status = new OneByteInt(0);
 
-            BytePacker replyMessageClient = server.generateReply(status, messageId, uuid);
+            BytePacker replyMessageClient = server.generateReply(status, messageId, message);
 
-            server.send(new InetSocketAddress(clientAddr, clientPort), replyMessageClient);
+            server.send(clientAddr, replyMessageClient);
 
             System.out.println("New booking uuid sent to main.client.");
-//            callback(facilities, uuid == null ? null : t, server);
+            callback(facilities, uuid == null ? null : t, server, status, messageId);
 
         }
 
@@ -143,19 +147,19 @@ public class DefaultHandler {
             String uuid = unpackedMsg.getString(Method.Change.UUID.toString());
             int offset = unpackedMsg.getInteger(Method.Change.OFFSET.toString());
             Pair<String, Facilities.Types> msg = facilities.changeBooking(uuid, offset);
-            String replyMsg;
 
-            if (msg.getValue() == null) {
-                replyMsg = "Change booking failed";
+            String replyMsg;
+            if (msg.getValue() == null){
+                replyMsg = msg.getKey();
             } else {
-                replyMsg = msg.getKey() + " change " + msg.getValue() + " booking success!";
+                replyMsg = "UUID: " + uuid + ". " + msg.getValue().toString() + ". " + msg.getKey();
             }
 
             int messageId = unpackedMsg.getInteger(MESSAGE_ID);
             OneByteInt status = new OneByteInt(0);
 
             BytePacker replyMessageClient = server.generateReply(status, messageId, replyMsg);
-            server.send(new InetSocketAddress(clientAddr, clientPort), replyMessageClient);
+            server.send(clientAddr, replyMessageClient);
 
             System.out.println("Change response sent to main.client");
 
@@ -176,9 +180,8 @@ public class DefaultHandler {
             int monitorInterval = unpackedMsg.getInteger(Method.Monitor.INTERVAL.toString());
             String facility = unpackedMsg.getString(Method.Monitor.FACILITY.toString());
             Facilities.Types t = Facilities.Types.valueOf(facility);
-            String clientAddress = clientAddr.toString();
 
-            LocalDateTime end = facilities.monitorAvailability(t, monitorInterval, new InetSocketAddress(clientAddress, clientPort));
+            LocalDateTime end = facilities.monitorAvailability(t, monitorInterval, clientAddr);
 
             String replyMsg = "Monitoring " + t.toString() + " until " + end.toString();
             int messageId = unpackedMsg.getInteger(MESSAGE_ID);
@@ -186,7 +189,7 @@ public class DefaultHandler {
 
             BytePacker replyMessageClient = server.generateReply(status, messageId, replyMsg);
 
-            server.send(new InetSocketAddress(clientAddr, clientPort), replyMessageClient);
+            server.send(clientAddr, replyMessageClient);
 
             System.out.println("Monitor response sent to main.client.");
 
@@ -206,13 +209,12 @@ public class DefaultHandler {
             String uuid = unpackedMsg.getString(Method.Extend.UUID.toString());
             double extendTime = unpackedMsg.getDouble(Method.Extend.EXTEND.toString());
             Pair<String, Facilities.Types> msg = facilities.extendBooking(uuid, extendTime);
+
             String replyMsg;
-
-            if (((Pair) msg).getValue() == null){
-                replyMsg = "Extension failed";
+            if (msg.getValue() == null){
+                replyMsg = msg.getKey();
             } else {
-                replyMsg = msg.getKey()+ " extend " + msg.getValue() + " booking success!";
-
+                replyMsg = "UUID: " + uuid + ". " + msg.getValue().toString() + ". " + msg.getKey();
             }
 
             int messageId = unpackedMsg.getInteger(MESSAGE_ID);
@@ -220,10 +222,10 @@ public class DefaultHandler {
 
             BytePacker replyMessageClient = server.generateReply(status, messageId, replyMsg);
 
-            server.send(new InetSocketAddress(clientAddr, clientPort), replyMessageClient);
+            server.send(clientAddr, replyMessageClient);
 
             System.out.println("Extend response sent to main.client");
-//            callback(facilities, msg.getValue(), server);
+//            callback(facilities, uuid == null ? null : t, server, status, messageId);
         }
 
         else if (serviceRequested == (Method.CANCEL)) {
@@ -238,13 +240,12 @@ public class DefaultHandler {
 
             String uuid = unpackedMsg.getString(Method.Cancel.UUID.toString());
             Pair<String, Facilities.Types> msg = facilities.cancelBooking(uuid);
+
             String replyMsg;
-
             if (msg.getValue() == null){
-                replyMsg = "Extension failed";
+                replyMsg = msg.getKey();
             } else {
-                replyMsg = msg.getKey()+ " cancel " + msg.getValue() + " booking success!";
-
+                replyMsg = "UUID: " + uuid + ". " + msg.getValue().toString() + ". " + msg.getKey();
             }
 
             int messageId = unpackedMsg.getInteger(MESSAGE_ID);
@@ -252,7 +253,7 @@ public class DefaultHandler {
 
             BytePacker replyMessageClient = server.generateReply(status, messageId, replyMsg);
 
-            server.send(new InetSocketAddress(clientAddr, clientPort), replyMessageClient);
+            server.send(clientAddr, replyMessageClient);
 
             System.out.println("Cancel response sent to main.client");
 //            callback(facilities, msg.getValue(), server);
@@ -266,14 +267,20 @@ public class DefaultHandler {
         System.out.println("-----------------");
     }
 
-//    private static void callback(Facilities facilities, Facilities.Types t, Transport server) {
-//        if (t == null) return;
-//        ArrayList<NodeInformation> clientsToUpdate = facilities.clientsToUpdate(t);
-//        for (NodeInformation n : clientsToUpdate) {
-//            ArrayList<Pair<Time, Time>> bookings = facilities.queryAvailability(t);
-//            server.send(n.getInetSocketAddress(), main.common.Util.putInHashMapPacket(Method.Methods.MONITOR, bookings));
-//        }
-//    }
+    private static void callback(Facilities facilities, Facilities.Types t, Transport server, OneByteInt status, int messageId) {
+        if (t == null) return;
+        ArrayList<NodeInformation> clientsToUpdate = facilities.clientsToUpdate(t);
+        for (NodeInformation n : clientsToUpdate) {
+            ArrayList<Pair<Time, Time>> bookings = facilities.queryAvailability(t);
+
+            String reply = parseBookingsToString(bookings);
+            BytePacker replyMessageClient = server.generateReply(status, messageId, reply);
+
+            System.out.println(n.getAddr());
+            server.send(n.getAddr(), replyMessageClient);
+            System.out.println("Query sent to main.client.");
+        }
+    }
 
     private static String parseBookingsToString(ArrayList<Pair<Time, Time>> bookings) {
         StringBuilder sb = new StringBuilder();

@@ -9,6 +9,7 @@ import javax.swing.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.desktop.SystemSleepEvent;
 import java.io.IOException;
+import java.io.StreamCorruptedException;
 import java.net.*;
 import java.util.HashMap;
 import java.util.Arrays;
@@ -42,9 +43,8 @@ public class Transport {
         return packet;
     }
 
-    // Serialise obj next time
-    public void send(SocketAddress dest, BytePacker packer) {
-        System.out.println("Destination: " + dest);
+
+    public void send(InetSocketAddress dest, BytePacker packer) {
         byte[] msg = packer.getByteArray();
         System.out.println("Message: " + msg);
         try {
@@ -55,8 +55,8 @@ public class Transport {
         return;
     }
 
-    public final ByteUnpacker.UnpackedMsg receivalProcedure(SocketAddress socketAddress, BytePacker packer, int messageId) throws IOException {
-        while(true) {
+    public final ByteUnpacker.UnpackedMsg receivalProcedure(InetSocketAddress socketAddress, BytePacker packer, int messageId) throws IOException, SocketTimeoutException {
+        while (true) {
             try {
                 DatagramPacket reply = this.receive();
                 ByteUnpacker byteUnpacker = new ByteUnpacker.Builder()
@@ -69,8 +69,12 @@ public class Transport {
 
                 if (checkMsgId(messageId, unpackedMsg)) {
                     return unpackedMsg;
+                } else {
+                    throw new StreamCorruptedException();
                 }
-            } catch(IOException e) {
+            } catch (StreamCorruptedException e) {
+                System.out.println("Request and Reply IDs don't match!");
+            } catch (IOException e) {
                 System.out.println(e);
             }
         }
@@ -103,10 +107,10 @@ public class Transport {
     }
 
     /** timeout in milliseconds **/
-    public DatagramPacket setNonZeroTimeoutAndReceive(int timeout) throws MonitoringExpireException, IOException{
+    public final ByteUnpacker.UnpackedMsg setNonZeroTimeoutReceivalProcedure(int timeout, InetSocketAddress socketAddress, BytePacker packer, int messageId) throws MonitoringExpireException, IOException{
         try {
             this.socket.setSoTimeout(timeout);
-            return this.receive();
+            return this.receivalProcedure(socketAddress, packer, messageId);
         } catch (SocketException e) {
             throw new MonitoringExpireException();
         }
