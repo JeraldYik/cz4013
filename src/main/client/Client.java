@@ -78,7 +78,7 @@ public class Client {
                 System.out.println("message sent to server");
                 while (true) {
                     if (this.random.nextDouble() >= failureProbability) {
-                        unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                        unpackedMsg = transport.receivalProcedure(message_id);
                         break;
                     } else {
                         System.out.println("Simulating packet loss");
@@ -160,7 +160,7 @@ public class Client {
                 System.out.println("message sent to server");
                 while (true) {
                     if (this.random.nextDouble() >= failureProbability) {
-                        unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                        unpackedMsg = transport.receivalProcedure(message_id);
                         break;
                     } else {
                         System.out.println("Simulating packet loss");
@@ -170,6 +170,7 @@ public class Client {
                 }
 
                 if (transport.checkStatus(unpackedMsg)) {
+                    System.out.println("Response from server:");
                     String response = unpackedMsg.getString(REPLY);
                     this.printBookings(response, facility);
                 } else {
@@ -273,7 +274,7 @@ public class Client {
                 ByteUnpacker.UnpackedMsg unpackedMsg;
                 while (true) {
                     if (this.random.nextDouble() >= failureProbability) {
-                        unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                        unpackedMsg = transport.receivalProcedure(message_id);
                         break;
                     } else {
                         System.out.println("Simulating packet loss");
@@ -329,7 +330,7 @@ public class Client {
                 this.transport.send(serverAddr, packer);
                 while (true) {
                     if (this.random.nextDouble() >= failureProbability) {
-                        unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                        unpackedMsg = transport.receivalProcedure(message_id);
                         break;
                     } else {
                         System.out.println("Simulating packet loss");
@@ -417,6 +418,7 @@ public class Client {
             /** Add 2s for latency issues? **/
             LocalDateTime end = LocalDateTime.now().plusMinutes(Long.valueOf(monitorInterval)).plusSeconds(2);
 
+            boolean receiveServerPingResponse = true;
             /** Blocks user until interval expires, while continuously listen to packets from server
              * If no packets received, i.e. no updates within interval, receive end packet from server to end monitoring
              * **/
@@ -427,22 +429,28 @@ public class Client {
                 int remainingTimeout = (int) ChronoUnit.MILLIS.between(now, end);
 
                 try {
-                    ByteUnpacker.UnpackedMsg unpackedMsg = transport.setNonZeroTimeoutReceivalProcedure(remainingTimeout, serverAddr, packer, message_id);
-                    if (transport.checkStatus(unpackedMsg)) {
-                        String reply = unpackedMsg.getString(REPLY);
-                        /** Do check for monitor ping response, or actual updates on monitoring **/
-//                        if () {
-//
-//                        } else {
-//
-//                        }
-                        System.out.println("Message received from server: " + reply);
+                    ByteUnpacker.UnpackedMsg unpackedMsg;
+                    /** Do check for monitor ping response, or actual updates on monitoring **/
+                    if (receiveServerPingResponse) {
+                        /** only receive ping response once per monitoring **/
+                        receiveServerPingResponse = false;
+                        unpackedMsg = transport.setNonZeroTimeoutReceivalProcedure(remainingTimeout, message_id);
+                        if (transport.checkStatus(unpackedMsg)) {
+                            String reply = unpackedMsg.getString(REPLY);
+                            System.out.println("Response from server: " + reply);
+                        } else {
+                            System.out.println("Failed to query facility");
+                        }
                     } else {
-//                        System.out.println("Failed to query facility");
+                        unpackedMsg = transport.setNonZeroTimeoutReceivalProcedure(remainingTimeout);
+                        if (transport.checkStatus(unpackedMsg)) {
+                            String reply = unpackedMsg.getString(REPLY);
+                            System.out.println("Response from server:");
+                            this.printBookings(reply, facility);
+                        } else {
+                            System.out.println("Failed to query facility");
+                        }
                     }
-//                    String response = unpackedMsg.getString(REPLY);
-//                    this.printBookings(response, facility);
-
                 } catch (IOException e) {
                     System.out.print(e);
                 }
@@ -481,7 +489,7 @@ public class Client {
             /** Add timeout here **/
 
             try {
-                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(message_id);
 
                 if (transport.checkStatus(unpackedMsg)) {
                     String reply = unpackedMsg.getString(REPLY);
@@ -528,7 +536,7 @@ public class Client {
             this.transport.send(serverAddr, packer);
 
             try {
-                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(message_id);
 
                 if (transport.checkStatus(unpackedMsg)) {
                     String reply = unpackedMsg.getString(REPLY);
@@ -654,7 +662,7 @@ public class Client {
                     System.out.println("message sent to server");
                     while (true) {
                         if (this.random.nextDouble() >= failureProbability) {
-                            unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                            unpackedMsg = transport.receivalProcedure(message_id);
                             break;
                         } else {
                             System.out.println("Simulating packet loss");
@@ -712,7 +720,7 @@ public class Client {
                 /** Add timeout here **/
 
                 try {
-                    ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                    ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(message_id);
 
                     if (transport.checkStatus(unpackedMsg)) {
                         String reply = unpackedMsg.getString(REPLY);
@@ -757,7 +765,7 @@ public class Client {
                     this.transport.send(this.serverAddr, packer);
                     System.out.println("Message count: " + i);
 
-                    ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(serverAddr, packer, message_id);
+                    ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(message_id);
 
                     if (transport.checkStatus(unpackedMsg)) {
                         String reply = unpackedMsg.getString(REPLY);

@@ -88,6 +88,7 @@ public class Facilities {
         NodeInformation n = new NodeInformation(addr, t);
         this.timeMap.put(stop, n);
         this.monitors.get(t).add(n);
+        System.out.println("Registering " + addr + " on " + t.toString());
         return stop;
     }
 
@@ -120,9 +121,9 @@ public class Facilities {
             while (iter.hasNext()) {
                 if (iter.next().equals(currentNode)) iter.remove();
             }
+            System.out.println("Deregistered " + this.timeMap.get(dt).getAddr());
             this.timeMap.remove(dt);
         }
-        System.out.println(this.monitors);
     }
 
     public ArrayList<NodeInformation> clientsToUpdate(Facilities.Types t) {

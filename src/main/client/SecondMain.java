@@ -14,7 +14,7 @@ public class SecondMain {
         String clientAddr = "0.0.0.0";
         String serverAddr = "127.0.0.1";
         int serverPort = 49152;
-        int clientPort = 49153;
+        int clientPort = 49154;
 
         String MANUAL =
                 "----------------------------------------------------------------\n" +

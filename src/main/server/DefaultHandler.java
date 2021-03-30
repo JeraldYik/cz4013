@@ -82,7 +82,7 @@ public class DefaultHandler {
             BytePacker replyMessageClient = server.generateReply(status, messageId, reply);
 
             server.send(clientAddr, replyMessageClient);
-            System.out.println("Query sent to main.client.");
+            System.out.println("Query sent to Client " + clientAddr);
 
         }
 
@@ -127,10 +127,9 @@ public class DefaultHandler {
             BytePacker replyMessageClient = server.generateReply(status, messageId, message);
 
             server.send(clientAddr, replyMessageClient);
+            System.out.println("New booking uuid sent to Client " + clientAddr);
 
-            System.out.println("New booking uuid sent to main.client.");
             callback(facilities, uuid == null ? null : t, server, status, messageId);
-
         }
 
         else if (serviceRequested == (Method.CHANGE)) {
@@ -160,10 +159,9 @@ public class DefaultHandler {
 
             BytePacker replyMessageClient = server.generateReply(status, messageId, replyMsg);
             server.send(clientAddr, replyMessageClient);
+            System.out.println("Change response sent to Client " + clientAddr);
 
-            System.out.println("Change response sent to main.client");
-
-//            callback(facilities, msg.getValue(), server);
+            callback(facilities, msg.getValue(), server, status, messageId);
         }
 
         else if (serviceRequested == (Method.MONITOR)) {
@@ -190,8 +188,7 @@ public class DefaultHandler {
             BytePacker replyMessageClient = server.generateReply(status, messageId, replyMsg);
 
             server.send(clientAddr, replyMessageClient);
-
-            System.out.println("Monitor response sent to main.client.");
+            System.out.println("Monitor response sent to Client " + clientAddr);
 
         }
 
@@ -223,9 +220,9 @@ public class DefaultHandler {
             BytePacker replyMessageClient = server.generateReply(status, messageId, replyMsg);
 
             server.send(clientAddr, replyMessageClient);
+            System.out.println("Extend response sent to Client " + clientAddr);
 
-            System.out.println("Extend response sent to main.client");
-//            callback(facilities, uuid == null ? null : t, server, status, messageId);
+            callback(facilities, msg.getValue(), server, status, messageId);
         }
 
         else if (serviceRequested == (Method.CANCEL)) {
@@ -254,10 +251,9 @@ public class DefaultHandler {
             BytePacker replyMessageClient = server.generateReply(status, messageId, replyMsg);
 
             server.send(clientAddr, replyMessageClient);
+            System.out.println("Cancel response sent to Client " + clientAddr);
 
-            System.out.println("Cancel response sent to main.client");
-//            callback(facilities, msg.getValue(), server);
-
+            callback(facilities, msg.getValue(), server, status, messageId);
         }
 
         else {
@@ -269,6 +265,7 @@ public class DefaultHandler {
 
     private static void callback(Facilities facilities, Facilities.Types t, Transport server, OneByteInt status, int messageId) {
         if (t == null) return;
+
         ArrayList<NodeInformation> clientsToUpdate = facilities.clientsToUpdate(t);
         for (NodeInformation n : clientsToUpdate) {
             ArrayList<Pair<Time, Time>> bookings = facilities.queryAvailability(t);
@@ -276,9 +273,8 @@ public class DefaultHandler {
             String reply = parseBookingsToString(bookings);
             BytePacker replyMessageClient = server.generateReply(status, messageId, reply);
 
-            System.out.println(n.getAddr());
             server.send(n.getAddr(), replyMessageClient);
-            System.out.println("Query sent to main.client.");
+            System.out.println("Update sent to client " + n.getAddr());
         }
     }
 
