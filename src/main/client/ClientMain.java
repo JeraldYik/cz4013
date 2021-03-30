@@ -6,7 +6,9 @@ import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Scanner;
 
+import static java.lang.Integer.parseInt;
 import static main.client.Util.*;
 
 public class ClientMain {
@@ -40,6 +42,13 @@ public class ClientMain {
                 "5: Print menu\n";
 
 
+        try {
+            String userAddr = readLine("Please enter preferred server IP address (enter '0' for default value): ");
+            if(parseInt(userAddr)!=0) serverAddr = userAddr;
+            int userPort = safeReadInt("Please enter preferred server port number (enter '0' for default value): ");
+            if(userPort!=0) serverPort = userPort;
+        } catch (Exception e) { System.out.println("Invalid values entered! Default values will be used."); }
+
         double failureProbability = safeReadDouble("Enter preferred server reply failure probability (0.0 - 1.0): ");
         while (failureProbability > 1.0) {
             failureProbability = safeReadDouble("Please enter a valid probability (0.0 - 1.0): ");
@@ -48,8 +57,14 @@ public class ClientMain {
         DatagramSocket socket = new DatagramSocket(new InetSocketAddress(clientAddr, clientPort));
         Client client = new Client(new Transport(socket, 8192), new InetSocketAddress(serverAddr, serverPort), failureProbability); // use CORBA Data Representation
 
+        System.out.println(
+                "\nConfigured Server IP Address: " + serverAddr +
+                "\nConfigured Server Port Number: " + serverPort +
+                "\nConfigured Server failure probability rate: " + failureProbability
+        );
+
         boolean terminate = false;
-        System.out.print(MANUAL);
+        System.out.print("\n" + MANUAL);
         while (!terminate) {
             int userChoice = safeReadInt("(MAIN MENU) Your choice of service ('9' for MANUAL): ");
             switch (userChoice) {

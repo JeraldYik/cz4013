@@ -5,7 +5,6 @@ import main.common.network.Transport;
 
 import java.net.*;
 
-import static main.client.Util.readLine;
 import static main.client.Util.safeReadInt;
 
 
@@ -31,38 +30,23 @@ public class ServerMain {
         System.out.println("Listening on udp://" + serverHost + ":" + port);
 
         Facilities facilities = new Facilities();
+        Handler handler = new Handler();
 
-        if (atMostOnce) {
-            AtMostOnceHandler handler = new AtMostOnceHandler();
+        if(atMostOnce) {
             System.out.print("Current server mode: At-Most-Once");
-            try {
-                while (true) {
-                    DatagramPacket p = server.receive();
-                    if (p.getLength() != 0) {
-                        handler.handle(server, facilities, p);
-                    } else {
-                        System.out.println("Packet received from client is null");
-                    }
+        } else { System.out.print("Current server mode: At-Least-Once"); }
+
+        try {
+            while (true) {
+                DatagramPacket p = server.receive();
+                if (p.getLength() != 0) {
+                    handler.handle(server, facilities, p, atMostOnce);
+                } else {
+                    System.out.println("Packet received from client is null");
                 }
-            } catch (Exception e) {
-                System.out.println("Server.Main - " + e.getClass().toString() + ": " + e.getMessage());
             }
-        }
-        else {
-            DefaultHandler handler = new DefaultHandler();
-            System.out.print("Current server mode: At-Least-Once");
-            try {
-                while (true) {
-                    DatagramPacket p = server.receive();
-                    if (p.getLength() != 0) {
-                        handler.handle(server, facilities, p);
-                    } else {
-                        System.out.println("Packet received from client is null");
-                    }
-                }
-            } catch (Exception e) {
-                System.out.println("Server.Main - " + e.getClass().toString() + ": " + e.getMessage());
-            }
+        } catch (Exception e) {
+            System.out.println("Server.Main - " + e.getClass().toString() + ": " + e.getMessage());
         }
     }
 }

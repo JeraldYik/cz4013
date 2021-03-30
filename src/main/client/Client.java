@@ -554,25 +554,6 @@ public class Client {
         }
     }
 
-
-    public static void testRMI(String serverHost, int serverPort) {
-        /** TODO:
-         *  Use socket programming
-         *  maybe there's no need for rmi architecture
-         */
-//         try {
-//             String rmiName = "rmi://" + serverHost + ":" + serverPort + "/City";
-//             RMIRegistry registry = RMIRegistry.getInstance();
-////             IRemote cityServer = (IRemote) Naming.lookup(rmiName);
-//             IRemote cityServer = (IRemote) registry.lookup(rmiName);
-//
-//         int pop = cityServer.getPopulation("Toronto");
-//            System.out.println("pop: " + pop);
-//         } catch (Exception e) {
-//            System.out.println("Exception! " + e.getMessage());
-//         }
-    }
-
     private void printBookings(String response, Facilities.Types t) {
         if (t == null) {
             System.out.println("Facility Type is null for unknown reason");

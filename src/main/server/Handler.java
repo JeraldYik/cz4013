@@ -10,6 +10,7 @@ import main.common.message.OneByteInt;
 import main.common.network.Method;
 import main.common.network.MethodNotFoundException;
 import main.common.network.Transport;
+import main.server.History.ClientRecord;
 import java.net.*;
 
 import java.time.LocalDateTime;
@@ -17,14 +18,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
-public class DefaultHandler {
+public class Handler {
 
     protected static final String STATUS = "STATUS";
     protected static final String SERVICE_ID = "SERVICEID";
     protected static final String MESSAGE_ID = "MESSAGEID";
     protected static final String REPLY = "REPLY";
+    private History history;
 
-    public static void handle(Transport server, Facilities facilities, DatagramPacket p) {
+    public Handler() { this.history = new History(); }
+
+    public void handle(Transport server, Facilities facilities, DatagramPacket p, boolean atMostOnce) {
 
         facilities.deregister();
         byte[] data = p.getData();
@@ -35,7 +39,11 @@ public class DefaultHandler {
 
         System.out.println("Method: " + serviceRequested);
 
+        ClientRecord client = this.history.findClient(clientAddr.getAddress(), clientAddr.getPort());
+
+        outerloop:
         if (serviceRequested == Method.PING) {
+
             System.out.println("in ping");
             // unpack data
             ByteUnpacker unpacker = new ByteUnpacker.Builder()
@@ -50,18 +58,35 @@ public class DefaultHandler {
             int messageId = unpackedMsg.getInteger(MESSAGE_ID);
 
             System.out.println("Received ping from client: " + pingMessage);
+            System.out.println("messageId = " + messageId);
 
-            OneByteInt status = new OneByteInt(0);
-            String reply = String.format("From main.server: ping received!\nMessage: " + pingMessage);
-            BytePacker replyMessageClient = server.generateReply(status, messageId, reply);
+            /* COPY FROM HERE */
 
-            server.send(clientAddr, replyMessageClient);
+            BytePacker historicalReply = null;
+            if(atMostOnce) historicalReply = client.findDuplicateMessage(messageId);
 
+            if (historicalReply == null) {
+                OneByteInt status = new OneByteInt(0);
+                String reply = String.format("From main.server: ping received!\nMessage: " + pingMessage);
+                BytePacker replyMessageClient = server.generateReply(status, messageId, reply);
+
+                if (atMostOnce) {
+                    client.addReplyEntry(messageId, replyMessageClient);
+                    System.out.println("New reply record added for current client!");
+                }
+
+                server.send(clientAddr, replyMessageClient);
+            }
+            else {
+                server.send(clientAddr, historicalReply);
+            }
             System.out.println("Ping response sent to main.client.");
 
         }
 
         else if (serviceRequested == (Method.QUERY)) {
+
+            /* IDEMPOTENT - NO HISTORY SAVING */
 
             ByteUnpacker unpacker = new ByteUnpacker.Builder()
                     .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
@@ -71,8 +96,9 @@ public class DefaultHandler {
 
             ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
 
-            OneByteInt status = new OneByteInt(0);
             int messageId = unpackedMsg.getInteger(MESSAGE_ID);
+
+            OneByteInt status = new OneByteInt(0);
 
             String facility = unpackedMsg.getString(Method.Query.FACILITY.toString());
             Facilities.Types t = Facilities.Types.valueOf(facility);
@@ -87,6 +113,8 @@ public class DefaultHandler {
         }
 
         else if (serviceRequested == Method.ADD) {
+
+            /* IDEMPOTENT - NO HISTORY SAVING */
 
             // unpack data
             ByteUnpacker unpacker = new ByteUnpacker.Builder()
@@ -134,6 +162,8 @@ public class DefaultHandler {
 
         else if (serviceRequested == (Method.CHANGE)) {
 
+            /* NON-IDEMPOTENT - HISTORY SAVING ENABLED WITH AT-MOST-ONCE SERVER */
+
             ByteUnpacker unpacker = new ByteUnpacker.Builder()
                     .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
                     .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
@@ -142,6 +172,18 @@ public class DefaultHandler {
                     .build();
 
             ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
+
+            int messageId = unpackedMsg.getInteger(MESSAGE_ID);
+
+            // check for duplicates
+            if(atMostOnce) {
+                BytePacker historicalReply;
+                historicalReply = client.findDuplicateMessage(messageId);
+                if (historicalReply != null) {
+                    server.send(clientAddr, historicalReply);
+                    break outerloop;
+                }
+            }
 
             String uuid = unpackedMsg.getString(Method.Change.UUID.toString());
             int offset = unpackedMsg.getInteger(Method.Change.OFFSET.toString());
@@ -154,10 +196,16 @@ public class DefaultHandler {
                 replyMsg = "UUID: " + uuid + ". " + msg.getValue().toString() + ". " + msg.getKey();
             }
 
-            int messageId = unpackedMsg.getInteger(MESSAGE_ID);
             OneByteInt status = new OneByteInt(0);
 
             BytePacker replyMessageClient = server.generateReply(status, messageId, replyMsg);
+
+            // add reply entry for client
+            if (atMostOnce) {
+                client.addReplyEntry(messageId, replyMessageClient);
+                System.out.println("New reply record added for current client!");
+            }
+
             server.send(clientAddr, replyMessageClient);
             System.out.println("Change response sent to Client " + clientAddr);
 
@@ -165,6 +213,8 @@ public class DefaultHandler {
         }
 
         else if (serviceRequested == (Method.MONITOR)) {
+
+            /* IDEMPOTENT - NO HISTORY SAVING */
 
             ByteUnpacker unpacker = new ByteUnpacker.Builder()
                     .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
@@ -194,6 +244,8 @@ public class DefaultHandler {
 
         else if (serviceRequested == (Method.EXTEND)) {
 
+            /* NON-IDEMPOTENT - HISTORY SAVING ENABLED WITH AT-MOST-ONCE SERVER */
+
             ByteUnpacker unpacker = new ByteUnpacker.Builder()
                     .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
                     .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
@@ -202,6 +254,18 @@ public class DefaultHandler {
                     .build();
 
             ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
+
+            int messageId = unpackedMsg.getInteger(MESSAGE_ID);
+
+            // check for duplicates
+            if(atMostOnce) {
+                BytePacker historicalReply;
+                historicalReply = client.findDuplicateMessage(messageId);
+                if (historicalReply != null) {
+                    server.send(clientAddr, historicalReply);
+                    break outerloop;
+                }
+            }
 
             String uuid = unpackedMsg.getString(Method.Extend.UUID.toString());
             double extendTime = unpackedMsg.getDouble(Method.Extend.EXTEND.toString());
@@ -214,10 +278,15 @@ public class DefaultHandler {
                 replyMsg = "UUID: " + uuid + ". " + msg.getValue().toString() + ". " + msg.getKey();
             }
 
-            int messageId = unpackedMsg.getInteger(MESSAGE_ID);
             OneByteInt status = new OneByteInt(0);
 
             BytePacker replyMessageClient = server.generateReply(status, messageId, replyMsg);
+
+            // add reply entry for client
+            if (atMostOnce) {
+                client.addReplyEntry(messageId, replyMessageClient);
+                System.out.println("New reply record added for current client!");
+            }
 
             server.send(clientAddr, replyMessageClient);
             System.out.println("Extend response sent to Client " + clientAddr);
@@ -226,6 +295,8 @@ public class DefaultHandler {
         }
 
         else if (serviceRequested == (Method.CANCEL)) {
+
+            /* IDEMPOTENT - NO HISTORY SAVING */
 
             ByteUnpacker unpacker = new ByteUnpacker.Builder()
                     .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
@@ -245,8 +316,9 @@ public class DefaultHandler {
                 replyMsg = "UUID: " + uuid + ". " + msg.getValue().toString() + ". " + msg.getKey();
             }
 
-            int messageId = unpackedMsg.getInteger(MESSAGE_ID);
+
             OneByteInt status = new OneByteInt(0);
+            int messageId = unpackedMsg.getInteger(MESSAGE_ID);
 
             BytePacker replyMessageClient = server.generateReply(status, messageId, replyMsg);
 
