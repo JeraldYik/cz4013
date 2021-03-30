@@ -112,6 +112,6 @@ public class Time implements Serializable {
     }
 
     public String getDayAsName() {
-        return Days.values()[this.day].toString();
+        return Days.values()[this.day - 1].toString();
     }
 }

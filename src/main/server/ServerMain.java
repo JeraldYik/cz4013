@@ -21,7 +21,6 @@ public class ServerMain {
 
         try {
             while (true) {
-
                 DatagramPacket p = server.receive();
 
                 if(p.getLength() != 0) {

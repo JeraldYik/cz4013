@@ -44,7 +44,9 @@ public class Transport {
 
     // Serialise obj next time
     public void send(SocketAddress dest, BytePacker packer) {
+        System.out.println("Destination: " + dest);
         byte[] msg = packer.getByteArray();
+        System.out.println("Message: " + msg);
         try {
             this.socket.send(new DatagramPacket(msg, msg.length, dest));
         } catch (IOException e) {

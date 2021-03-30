@@ -148,7 +148,7 @@ public class DefaultHandler {
             if (msg.getValue() == null) {
                 replyMsg = "Change booking failed";
             } else {
-                replyMsg = "UUID: " + msg.getKey() + " change " + msg.getValue() + " booking success!";
+                replyMsg = msg.getKey() + " change " + msg.getValue() + " booking success!";
             }
 
             int messageId = unpackedMsg.getInteger(MESSAGE_ID);
@@ -211,7 +211,7 @@ public class DefaultHandler {
             if (((Pair) msg).getValue() == null){
                 replyMsg = "Extension failed";
             } else {
-                replyMsg = "UUID: "+msg.getKey()+ " extend " + msg.getValue() + " booking success!";
+                replyMsg = msg.getKey()+ " extend " + msg.getValue() + " booking success!";
 
             }
 
@@ -243,7 +243,7 @@ public class DefaultHandler {
             if (msg.getValue() == null){
                 replyMsg = "Extension failed";
             } else {
-                replyMsg = "UUID: "+msg.getKey()+ " cancel " + msg.getValue() + " booking success!";
+                replyMsg = msg.getKey()+ " cancel " + msg.getValue() + " booking success!";
 
             }
 
