@@ -75,9 +75,6 @@ public class Time {
             hour -= 24;
         }
         day += numDays;
-        System.out.println(day);
-        System.out.println(hour);
-        System.out.println(min);
         if (day > 7) {
             return null;
         }
