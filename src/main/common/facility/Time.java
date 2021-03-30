@@ -110,6 +110,6 @@ public class Time {
     }
 
     public String getDayAsName() {
-        return Days.values()[this.day-1].toString();
+        return Days.values()[this.day - 1].toString();
     }
 }

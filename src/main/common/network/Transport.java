@@ -47,8 +47,10 @@ public class Transport {
         return packet;
     }
 
+
     public void send(InetSocketAddress dest, BytePacker packer) {
         byte[] msg = packer.getByteArray();
+        System.out.println("Message: " + msg);
         try {
             this.socket.send(new DatagramPacket(msg, msg.length, dest));
         } catch (IOException e) {

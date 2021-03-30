@@ -547,7 +547,6 @@ public class Client {
 
             } catch (IOException e) {
                 System.out.print(e);
-
             }
 
         } catch (RuntimeException e) {
