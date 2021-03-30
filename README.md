@@ -16,17 +16,19 @@
 
 - [x] Non-idempotent function: Allow users to extend active booking in 30-minute blocks
 
-- [ ] Implement fault-tolerance measures (loss of request & reply messages) - At-least-once
+- [x] Implement fault-tolerance measures (loss of request & reply messages) - At-least-once
     - [x] Implement timeout simulation
-    - [ ] Show that at-least-once invocation semantics can lead to wrong results for non-idempotent operations
+    - [x] Show that at-least-once invocation semantics can lead to wrong results for non-idempotent operations
 
-- [ ] Implement fault-tolerance measures (loss of request & reply messages) - At-most-once
+- [x] Implement fault-tolerance measures (loss of request & reply messages) - At-most-once
     - [x] Implement timeout simulation
-    - [ ] Show that at-most-once invocation semantics work correctly for all operations
+    - [x] Show that at-most-once invocation semantics work correctly for non-idempotent operations
 
 - [x] Add type of semantics to use as argument to clientRecord/server
 
-- [ ] Allow users to manually assign server IP address and port number
+- [x] Allow users to manually assign server IP address and port number
+
+- [ ] Add debug statements to test for At-Least-Once and At-Most-Once invocation semantics
 
 - [ ] To check on flow of project (successes & errors)
     

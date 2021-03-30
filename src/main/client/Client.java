@@ -155,19 +155,23 @@ public class Client {
 
             ByteUnpacker.UnpackedMsg unpackedMsg;
 
-            try {
+//            try {
+//                this.transport.send(this.serverAddr, packer);
+//                System.out.println("message sent to server");
+//                while (true) {
+//                    if (this.random.nextDouble() >= failureProbability) {
+//                        unpackedMsg = transport.receivalProcedure(message_id);
+//                        break;
+//                    } else {
+//                        System.out.println("Simulating packet loss");
+//                        Thread.sleep(timeout);
+//                        this.transport.send(this.serverAddr, packer);
+//                    }
+//                }
+
                 this.transport.send(this.serverAddr, packer);
                 System.out.println("message sent to server");
-                while (true) {
-                    if (this.random.nextDouble() >= failureProbability) {
-                        unpackedMsg = transport.receivalProcedure(message_id);
-                        break;
-                    } else {
-                        System.out.println("Simulating packet loss");
-                        Thread.sleep(timeout);
-                        this.transport.send(this.serverAddr, packer);
-                    }
-                }
+                unpackedMsg = transport.receivalProcedure(message_id);
 
                 if (transport.checkStatus(unpackedMsg)) {
                     System.out.println("Response from server:");
@@ -179,10 +183,7 @@ public class Client {
 
             } catch (IOException e) {
                 System.out.print(e.getMessage());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        } catch (RuntimeException e) {
+            } catch (RuntimeException e) {
             System.out.println("Client.queryAvailability - Runtime Exception! " + e.getMessage());
         }
     }
@@ -277,6 +278,7 @@ public class Client {
                         unpackedMsg = transport.receivalProcedure(message_id);
                         break;
                     } else {
+                        DatagramPacket temp = transport.receive();
                         System.out.println("Simulating packet loss");
                         Thread.sleep(2000);
                         this.transport.send(this.serverAddr, packer);
@@ -333,6 +335,7 @@ public class Client {
                         unpackedMsg = transport.receivalProcedure(message_id);
                         break;
                     } else {
+                        DatagramPacket temp = transport.receive();
                         System.out.println("Simulating packet loss");
                         Thread.sleep(timeout);
                         this.transport.send(this.serverAddr, packer);
@@ -533,11 +536,20 @@ public class Client {
                     .setProperty(Method.Extend.EXTEND.toString(), extend)
                     .build();
 
-            this.transport.send(serverAddr, packer);
-
             try {
-                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(message_id);
-
+                ByteUnpacker.UnpackedMsg unpackedMsg;
+                this.transport.send(serverAddr, packer);
+                while (true) {
+                    if (this.random.nextDouble() >= failureProbability) {
+                        unpackedMsg = transport.receivalProcedure(message_id);
+                        break;
+                    } else {
+                        DatagramPacket temp = transport.receive();
+                        System.out.println("Simulating packet loss");
+                        Thread.sleep(timeout);
+                        this.transport.send(this.serverAddr, packer);
+                    }
+                }
                 if (transport.checkStatus(unpackedMsg)) {
                     String reply = unpackedMsg.getString(REPLY);
                     System.out.println("Response from server: " + reply);
@@ -547,6 +559,8 @@ public class Client {
 
             } catch (IOException e) {
                 System.out.print(e);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
 
         } catch (RuntimeException e) {

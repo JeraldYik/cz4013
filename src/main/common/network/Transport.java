@@ -97,8 +97,6 @@ public class Transport {
 
                 return byteUnpacker.parseByteArray(reply.getData());
 
-            } catch (StreamCorruptedException e) {
-                System.out.println("Request and Reply IDs don't match!");
             } catch (IOException e) {
                 System.out.println(e);
             }
@@ -121,6 +119,7 @@ public class Transport {
         if (returnMessageId != null) {
             return messageId == returnMessageId;
         }
+        System.out.println("Transport.checkMsgId - returnmessageid is null");
         return false;
     }
 

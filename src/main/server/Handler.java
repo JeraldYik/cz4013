@@ -147,7 +147,10 @@ public class Handler {
 
             String message = uuid == null
                     ? "Booking cannot be added due to clashes with existing bookings"
-                    : "UUID of booking: " + uuid;
+                    : "Booking confirmed! UUID of booking: " + uuid +
+                    " | Facility: " + facility +
+                    " | Start: " + start.getDayAsName() + " " +  start.hour + ":" + start.minute +
+                    " | End: " + end.getDayAsName() + " " +  end.hour + ":" + end.minute;
 
             int messageId = unpackedMsg.getInteger(MESSAGE_ID);
             OneByteInt status = new OneByteInt(0);
@@ -155,7 +158,7 @@ public class Handler {
             BytePacker replyMessageClient = server.generateReply(status, messageId, message);
 
             server.send(clientAddr, replyMessageClient);
-            System.out.println("New booking uuid sent to Client " + clientAddr);
+            System.out.println("New booking uuid sent to client: " + clientAddr + " with booking uuid: " + uuid);
 
             callback(facilities, uuid == null ? null : t, server, status, messageId);
         }
@@ -358,13 +361,13 @@ public class Handler {
             sb.append(start.getDayAsName());
             sb.append("/");
             sb.append(start.hour);
-            sb.append("/");
+            sb.append(":");
             sb.append(start.minute);
             sb.append("-");
             sb.append(end.getDayAsName());
             sb.append("/");
             sb.append(end.hour);
-            sb.append("/");
+            sb.append(":");
             sb.append(end.minute);
             /** delimiter **/
             sb.append(Method.DELIMITER);
