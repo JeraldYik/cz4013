@@ -9,7 +9,16 @@ import java.net.SocketException;
 import static main.client.Util.safeReadDouble;
 import static main.client.Util.safeReadInt;
 
+/**
+ * The type Client main.
+ */
 public class ClientMain {
+    /**
+     * The entry point of application.
+     *
+     * @param args the input arguments
+     * @throws SocketException the socket exception
+     */
     public static void main(String[] args) throws SocketException {
 
         String clientAddr = "0.0.0.0";

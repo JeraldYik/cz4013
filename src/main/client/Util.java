@@ -13,6 +13,7 @@ public class Util {
      * This method will attempt to read user input until it encounters
      * a valid integer.
      *
+     * @param prompt the prompt
      * @return an integer from stdin
      */
     public static int safeReadInt(String prompt) {
@@ -30,6 +31,7 @@ public class Util {
      * This method will attempt to read user input until it encounters
      * a valid double.
      *
+     * @param prompt the prompt
      * @return an double from stdin
      */
     public static double safeReadDouble(String prompt) {
@@ -45,6 +47,7 @@ public class Util {
     /**
      * Reads a line from stdin.
      *
+     * @param prompt the prompt
      * @return a line from stdin
      */
     public static String readLine(String prompt) {

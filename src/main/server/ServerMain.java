@@ -11,7 +11,16 @@ import java.net.SocketException;
 import static main.client.Util.safeReadInt;
 
 
+/**
+ * The type Server main.
+ */
 public class ServerMain {
+    /**
+     * The entry point of application.
+     *
+     * @param args the input arguments
+     * @throws SocketException the socket exception
+     */
     public static void main(String[] args) throws SocketException {
         String serverHost = "127.0.0.1";
         int port = 49152;
