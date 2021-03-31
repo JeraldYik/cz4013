@@ -41,17 +41,17 @@ public class ClientMain {
                 "6: Print menu\n";
 
 
-        try {
-            String userAddr = readLine("Please enter preferred server IP address (enter '0' for default value): ");
-            serverAddr = (userAddr.equals("0")) ? userAddr : "127.0.0.1";
-            int userPort = safeReadInt("Please enter preferred server port number (enter '0' for default value): ");
-            serverPort = (userPort != 0) ? userPort : 49152;
-
-            userAddr = readLine("Please enter preferred client IP address (enter '0' for default value): ");
-            if(parseInt(userAddr)!=0) clientAddr = userAddr;
-            userPort = safeReadInt("Please enter preferred client port number (enter '0' for default value): ");
-            if(userPort!=0) clientPort = userPort;
-        } catch (Exception e) { System.out.println("Invalid values entered! Default values will be used."); }
+//        try {
+//            String userAddr = readLine("Please enter preferred server IP address (enter '0' for default value): ");
+//            serverAddr = (userAddr.equals("0")) ? userAddr : "127.0.0.1";
+//            int userPort = safeReadInt("Please enter preferred server port number (enter '0' for default value): ");
+//            serverPort = (userPort != 0) ? userPort : 49152;
+//
+//            userAddr = readLine("Please enter preferred client IP address (enter '0' for default value): ");
+//            if(parseInt(userAddr)!=0) clientAddr = userAddr;
+//            userPort = safeReadInt("Please enter preferred client port number (enter '0' for default value): ");
+//            if(userPort!=0) clientPort = userPort;
+//        } catch (Exception e) { System.out.println("Invalid values entered! Default values will be used."); }
 
         double failureProbability = safeReadDouble("Enter preferred server reply failure probability (0.0 - 1.0): ");
         while (failureProbability > 1.0) {
