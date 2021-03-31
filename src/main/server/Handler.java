@@ -17,50 +17,34 @@ import java.net.InetSocketAddress;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
-/**
- * The type Handler.
- */
 public class Handler {
 
-    /**
-     * The constant STATUS.
-     */
-    protected static final String STATUS = "STATUS";
-    /**
-     * The constant SERVICE_ID.
-     */
     protected static final String SERVICE_ID = "SERVICEID";
-    /**
-     * The constant MESSAGE_ID.
-     */
     protected static final String MESSAGE_ID = "MESSAGEID";
-    /**
-     * The constant REPLY.
-     */
-    protected static final String REPLY = "REPLY";
-    /**
-     * The History.
-     */
     private final History history;
 
     /**
-     * Instantiates a new Handler.
+     * Instantiates a new Handler with a new History instance
      */
     public Handler() {
         this.history = new History();
     }
 
     /**
-     * Handle.
+     * The entry point from ServerMain.java
      *
-     * @param server     the server
-     * @param facilities the facilities
-     * @param p          the p
-     * @param atMostOnce the at most once
+     * @param server     the Transport instance of the server, which handles all the routing required
+     * @param facilities the Facilities instance holding all information and methods for the Facility Booking System
+     * @param p          the incoming Request packet
+     * @param atMostOnce the flag which determines the invocation semantics (at-most-once & at-least once)
      */
     public void handle(Transport server, Facilities facilities, DatagramPacket p, boolean atMostOnce) {
-
+        /**
+         * Deregister any expired monitoring clients whenever a packet is received by the server,
+         * before handling the actual packet.
+         */
         facilities.deregister();
+
         byte[] data = p.getData();
         InetSocketAddress clientAddr = (InetSocketAddress) p.getSocketAddress();
         int serviceRequested = data[0];
@@ -72,6 +56,9 @@ public class Handler {
         ClientRecord client = this.history.findClient(clientAddr.getAddress(), clientAddr.getPort());
 
         outerloop:
+        /**
+         * PING method. To test network infrastructure
+         */
         if (serviceRequested == Method.PING) {
 
             System.out.println("in ping");
@@ -89,8 +76,6 @@ public class Handler {
 
             System.out.println("Received ping from client: " + pingMessage);
             System.out.println("messageId = " + messageId);
-
-            /* COPY FROM HERE */
 
             BytePacker historicalReply = null;
             if (atMostOnce) historicalReply = client.findDuplicateMessage(messageId);
@@ -110,8 +95,11 @@ public class Handler {
                 server.send(clientAddr, historicalReply);
             }
             System.out.println("Ping response sent to main.client.");
-
-        } else if (serviceRequested == (Method.QUERY)) {
+        }
+        /**
+         * QUERY method. To query on bookings on a specified facility
+         */
+        else if (serviceRequested == (Method.QUERY)) {
 
             /** IDEMPOTENT - NO HISTORY SAVING */
 
@@ -136,8 +124,11 @@ public class Handler {
 
             server.send(clientAddr, replyMessageClient);
             System.out.println("Query sent to Client " + clientAddr);
-
-        } else if (serviceRequested == Method.ADD) {
+        }
+        /**
+         * ADD method. To add a booking to a specified facility
+         */
+        else if (serviceRequested == Method.ADD) {
 
             /** IDEMPOTENT - NO HISTORY SAVING */
 
@@ -186,7 +177,12 @@ public class Handler {
             System.out.println("New booking uuid sent to client: " + clientAddr + " with booking uuid: " + uuid);
 
             callback(facilities, uuid == null ? null : t, server, status, messageId);
-        } else if (serviceRequested == (Method.CHANGE)) {
+        }
+        /**
+         * CHANGE method. To shift a booking forwards or backwards without changing the duration of the booking.
+         * UUID supplied
+         */
+        else if (serviceRequested == (Method.CHANGE)) {
 
             /** NON-IDEMPOTENT - HISTORY SAVING ENABLED WITH AT-MOST-ONCE SERVER */
 
@@ -236,7 +232,11 @@ public class Handler {
             System.out.println("Change response sent to Client " + clientAddr);
 
             callback(facilities, msg.getValue(), server, status, messageId);
-        } else if (serviceRequested == (Method.MONITOR)) {
+        }
+        /**
+         * MONITOR method. To handle monitor request from clients on a specified facility.
+         */
+        else if (serviceRequested == (Method.MONITOR)) {
 
             /** IDEMPOTENT - NO HISTORY SAVING */
 
@@ -264,7 +264,12 @@ public class Handler {
             server.send(clientAddr, replyMessageClient);
             System.out.println("Monitor response sent to Client " + clientAddr);
 
-        } else if (serviceRequested == (Method.EXTEND)) {
+        }
+        /**
+         * EXTEND method. To extend the duration of a booking forwards.
+         * UUID supplied
+         */
+        else if (serviceRequested == (Method.EXTEND)) {
 
             /** NON-IDEMPOTENT - HISTORY SAVING ENABLED WITH AT-MOST-ONCE SERVER */
 
@@ -314,7 +319,12 @@ public class Handler {
             System.out.println("Extend response sent to Client " + clientAddr);
 
             callback(facilities, msg.getValue(), server, status, messageId);
-        } else if (serviceRequested == (Method.CANCEL)) {
+        }
+        /**
+         * CANCEL method. To cancel a particular booking.
+         * UUID supplied
+         */
+        else if (serviceRequested == (Method.CANCEL)) {
 
             /** IDEMPOTENT - NO HISTORY SAVING */
 
@@ -354,13 +364,13 @@ public class Handler {
     }
 
     /**
-     * Callback.
+     * The callback function for methods that perform updates to a facility, to send update packets to the respective monitoring clients.
      *
-     * @param facilities the facilities
-     * @param t          the t
-     * @param server     the server
-     * @param status     the status
-     * @param messageId  the message id
+     * @param facilities the Facilities instance
+     * @param t          the type of Facilities updated
+     * @param server     the Transport instance of the server,
+     * @param status     the header for the client request message, it only occupies 1 byte
+     * @param messageId  the id corresponding the method type of the request packet, and hence the response packet
      */
     private static void callback(Facilities facilities, Facilities.Types t, Transport server, OneByteInt status, int messageId) {
         if (t == null) return;
@@ -378,10 +388,10 @@ public class Handler {
     }
 
     /**
-     * Parse bookings to string string.
+     * Parse ArrayList of bookings to a message string.
      *
      * @param bookings the bookings
-     * @return the string
+     * @return the message string
      */
     private static String parseBookingsToString(ArrayList<Pair<Time, Time>> bookings) {
         StringBuilder sb = new StringBuilder();
