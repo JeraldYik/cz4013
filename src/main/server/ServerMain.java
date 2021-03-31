@@ -3,9 +3,11 @@ package main.server;
 import main.common.facility.Facilities;
 import main.common.network.Transport;
 
-import java.net.*;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetSocketAddress;
+import java.net.SocketException;
 
-import static java.lang.Integer.parseInt;
 import static main.client.Util.readLine;
 import static main.client.Util.safeReadInt;
 
@@ -15,13 +17,6 @@ public class ServerMain {
         String serverHost = "127.0.0.1";
         int port = 49152;
         boolean atMostOnce = false;
-
-        try {
-            String userAddr = readLine("Please enter preferred server IP address (enter '0' for default value): ");
-            if(!userAddr.equals("0")) serverHost = userAddr;
-            int userPort = safeReadInt("Please enter preferred server port number (enter '0' for default value): ");
-            if(userPort!=0) port = userPort;
-        } catch (Exception e) { System.out.println("Invalid values entered! Default values will be used."); }
 
         System.out.print(
                 "0: At-Least-Once Server\n" +

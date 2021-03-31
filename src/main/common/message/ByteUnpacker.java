@@ -14,14 +14,6 @@ public class ByteUnpacker {
         propToValue = new HashMap<>();
     }
 
-//    public ByteUnpacker defineComponents(ByteUnpacker unpacker){
-//        if(unpacker!=null){
-//            properties.addAll(unpacker.properties);
-//            propToValue.putAll(unpacker.propToValue);
-//        }
-//        return this;
-//    }
-
     public UnpackedMsg parseByteArray(byte[] data){
         int offset = 0;
         HashMap<String, Object> map = new HashMap<>();

@@ -6,7 +6,7 @@ import java.util.*;
 
 public class Availability {
 
-    private HashMap<UUID, Pair<Time, Time>> bookings;
+    private final HashMap<UUID, Pair<Time, Time>> bookings;
 
     public Availability() {
         this.bookings = new HashMap<>();

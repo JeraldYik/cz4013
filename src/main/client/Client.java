@@ -1,31 +1,23 @@
 package main.client;
 
-import javafx.util.Pair;
 import main.common.facility.Facilities;
 import main.common.facility.Time;
 import main.common.message.BytePacker;
 import main.common.message.ByteUnpacker;
 import main.common.message.OneByteInt;
 import main.common.network.Method;
+import main.common.network.MonitoringExpireException;
+import main.common.network.Transport;
+
 import java.io.IOException;
-import java.net.*;
-import java.util.ArrayList;
-import java.time.temporal.ChronoUnit;
-import main.common.network.*;
-import java.lang.invoke.MethodHandle;
+import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.SortedSet;
-import java.util.UUID;
-import java.util.Arrays;
 import java.util.Random;
-import main.common.network.*;
-import javax.xml.crypto.Data;
+import java.util.UUID;
+
 import static main.client.Util.*;
 
 public class Client {
@@ -54,11 +46,6 @@ public class Client {
     public int getMessageId() {
         return message_id++;
     }
-
-    public void setMessageId(int msg_id) {
-        this.message_id = msg_id;
-    }
-
 
     public void sendMessageToServer() {
         try {
@@ -155,36 +142,22 @@ public class Client {
 
             ByteUnpacker.UnpackedMsg unpackedMsg;
 
-//            try {
-//                this.transport.send(this.serverAddr, packer);
-//                System.out.println("message sent to server");
-//                while (true) {
-//                    if (this.random.nextDouble() >= failureProbability) {
-//                        unpackedMsg = transport.receivalProcedure(message_id);
-//                        break;
-//                    } else {
-//                        System.out.println("Simulating packet loss");
-//                        Thread.sleep(timeout);
-//                        this.transport.send(this.serverAddr, packer);
-//                    }
-//                }
+            this.transport.send(this.serverAddr, packer);
+            System.out.println("message sent to server");
+            unpackedMsg = transport.receivalProcedure(message_id);
 
-                this.transport.send(this.serverAddr, packer);
-                System.out.println("message sent to server");
-                unpackedMsg = transport.receivalProcedure(message_id);
+            if (transport.checkStatus(unpackedMsg)) {
+                System.out.println("Response from server:");
+                String response = unpackedMsg.getString(REPLY);
+                this.printBookings(response, facility);
+            } else {
+                System.out.println("Failed to query facility");
+            }
 
-                if (transport.checkStatus(unpackedMsg)) {
-                    System.out.println("Response from server:");
-                    String response = unpackedMsg.getString(REPLY);
-                    this.printBookings(response, facility);
-                } else {
-                    System.out.println("Failed to query facility");
-                }
-
-            } catch (IOException e) {
-                System.out.print(e.getMessage());
-            } catch (RuntimeException e) {
-            System.out.println("Client.queryAvailability - Runtime Exception! " + e.getMessage());
+        } catch (IOException e) {
+            System.out.print(e.getMessage());
+        } catch (RuntimeException e) {
+        System.out.println("Client.queryAvailability - Runtime Exception! " + e.getMessage());
         }
     }
 
@@ -635,8 +608,6 @@ public class Client {
         return new Time(userDayChoice, userHourChoice, userMinuteChoice);
     }
 
-    /* TODO: Implement test statements */
-
     public void sendDuplicatePingsToServer() {
         try {
             String testmsg = readLine("Your message: ");
@@ -650,7 +621,7 @@ public class Client {
                     .build();
 
             try {
-                ByteUnpacker.UnpackedMsg unpackedMsg = null;
+                ByteUnpacker.UnpackedMsg unpackedMsg;
                 for (int i = 1; i <= 5; i++) {
                     this.transport.send(this.serverAddr, packer);
                     System.out.println("message sent to server");
