@@ -48,7 +48,7 @@ public class Util {
      * @return a line from stdin
      */
     public static String readLine(String prompt) {
-        System.out.print(prompt);
+        System.out.print("\n" + prompt);
         String input = reader.nextLine();
         while (input.equals("")) {
             System.out.println("Input is empty!");
