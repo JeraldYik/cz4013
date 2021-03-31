@@ -17,18 +17,44 @@ import java.net.InetSocketAddress;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
+/**
+ * The type Handler.
+ */
 public class Handler {
 
+    /**
+     * The constant STATUS.
+     */
     protected static final String STATUS = "STATUS";
+    /**
+     * The constant SERVICE_ID.
+     */
     protected static final String SERVICE_ID = "SERVICEID";
+    /**
+     * The constant MESSAGE_ID.
+     */
     protected static final String MESSAGE_ID = "MESSAGEID";
+    /**
+     * The constant REPLY.
+     */
     protected static final String REPLY = "REPLY";
     private final History history;
 
+    /**
+     * Instantiates a new Handler.
+     */
     public Handler() {
         this.history = new History();
     }
 
+    /**
+     * Handle.
+     *
+     * @param server     the server
+     * @param facilities the facilities
+     * @param p          the p
+     * @param atMostOnce the at most once
+     */
     public void handle(Transport server, Facilities facilities, DatagramPacket p, boolean atMostOnce) {
 
         facilities.deregister();

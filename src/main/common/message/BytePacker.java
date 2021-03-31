@@ -4,6 +4,9 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * The type Byte packer.
+ */
 public class BytePacker {
 
     private final ArrayList<String> properties;
@@ -28,7 +31,11 @@ public class BytePacker {
         this.propToValue.put(property, value);
     }
 
-
+    /**
+     * Get byte array byte [ ].
+     *
+     * @return the byte [ ]
+     */
     public byte[] getByteArray(){
         /*
             Calculate the size required for the byte array
@@ -106,35 +113,81 @@ public class BytePacker {
         return index;
     }
 
+    /**
+     * The type Builder.
+     */
     public static class Builder{
         private final BytePacker packer;
 
+        /**
+         * Instantiates a new Builder.
+         */
         public Builder(){
             packer = new BytePacker();
         }
 
+        /**
+         * Set property builder.
+         *
+         * @param key   the key
+         * @param value the value
+         * @return the builder
+         */
         public Builder setProperty(String key, int value){
             return set(key,value);
         }
 
+        /**
+         * Set property builder.
+         *
+         * @param key   the key
+         * @param value the value
+         * @return the builder
+         */
         public Builder setProperty(String key, double value){
             return set(key, value);
         }
 
+        /**
+         * Set property builder.
+         *
+         * @param key    the key
+         * @param string the string
+         * @return the builder
+         */
         public Builder setProperty(String key, String string){
             return set(key, string);
         }
 
+        /**
+         * Set property builder.
+         *
+         * @param key   the key
+         * @param value the value
+         * @return the builder
+         */
         public Builder setProperty(String key, OneByteInt value){
             return set(key,value);
         }
 
+        /**
+         * Set builder.
+         *
+         * @param key   the key
+         * @param value the value
+         * @return the builder
+         */
         public Builder set(String key, Object value){
             packer.setValue(key,value);
             return this;
         }
 
 
+        /**
+         * Build byte packer.
+         *
+         * @return the byte packer
+         */
         public BytePacker build(){
             return packer;
         }

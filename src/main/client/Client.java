@@ -20,11 +20,26 @@ import java.util.UUID;
 
 import static main.client.Util.*;
 
+/**
+ * The type Client.
+ */
 public class Client {
 
+    /**
+     * The constant STATUS.
+     */
     protected static final String STATUS = "STATUS";
+    /**
+     * The constant SERVICE_ID.
+     */
     protected static final String SERVICE_ID = "SERVICEID";
+    /**
+     * The constant MESSAGE_ID.
+     */
     protected static final String MESSAGE_ID = "MESSAGEID";
+    /**
+     * The constant REPLY.
+     */
     protected static final String REPLY = "REPLY";
     private final Transport transport;
     private final int timeout = 2000;
@@ -34,6 +49,13 @@ public class Client {
     private final Random random;
 
 
+    /**
+     * Instantiates a new Client.
+     *
+     * @param transport          the transport
+     * @param serverAddr         the server addr
+     * @param failureProbability the failure probability
+     */
     public Client(Transport transport, InetSocketAddress serverAddr, double failureProbability) {
         this.transport = transport;
         this.serverAddr = serverAddr;
@@ -42,10 +64,18 @@ public class Client {
         this.random = new Random();
     }
 
+    /**
+     * Gets message id.
+     *
+     * @return the message id
+     */
     public int getMessageId() {
         return message_id++;
     }
 
+    /**
+     * Send message to server.
+     */
     public void sendMessageToServer() {
         try {
             String testmsg = readLine("Your message: ");
@@ -89,6 +119,9 @@ public class Client {
         }
     }
 
+    /**
+     * Query availability.
+     */
     public void queryAvailability() {
         String MANUAL = "----------------------------------------------------------------\n" +
                 "Please choose a facility by typing [1-4]:\n" +
@@ -129,7 +162,6 @@ public class Client {
                         break;
                 }
             }
-            /** Add timeout here **/
 
             int message_id = this.getMessageId();
 
@@ -160,6 +192,9 @@ public class Client {
         }
     }
 
+    /**
+     * Add booking.
+     */
     public void addBooking() {
         String facility = "";
         int startDay;
@@ -275,6 +310,9 @@ public class Client {
         }
     }
 
+    /**
+     * Change booking.
+     */
     public void changeBooking() {
 
         UUID uuid;
@@ -336,7 +374,6 @@ public class Client {
      * For simplicity, you may assume that the user that has issued a register request for monitoring is blocked from inputting any new request until the monitor interval expires,
      * i.e., the client simply waits for the updates from the server during the monitoring interval. As a result, you do not have to use multiple threads at a client.
      */
-
     public void monitorAvailability() {
         boolean terminate = false;
         Facilities.Types facility = null;
@@ -438,7 +475,10 @@ public class Client {
 
     }
 
-    // an idempotent operation
+    /**
+     * Cancel booking.
+     */
+// an idempotent operation
     public void cancelBooking() {
         UUID uuid;
 
@@ -461,7 +501,6 @@ public class Client {
                     .build();
 
             this.transport.send(serverAddr, packer);
-            /** Add timeout here **/
 
             try {
                 ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(message_id);
@@ -482,7 +521,10 @@ public class Client {
         }
     }
 
-    // a non-idempotent operation
+    /**
+     * Extend booking.
+     */
+// a non-idempotent operation
     public void extendBooking() {
         UUID uuid;
         while (true) {
@@ -607,6 +649,9 @@ public class Client {
         return new Time(userDayChoice, userHourChoice, userMinuteChoice);
     }
 
+    /**
+     * Send duplicate pings to server.
+     */
     public void sendDuplicatePingsToServer() {
         try {
             String testmsg = readLine("Your message: ");
@@ -653,6 +698,9 @@ public class Client {
         }
     }
 
+    /**
+     * Send duplicate extends to server.
+     */
     public void sendDuplicateExtendsToServer() {
         UUID uuid;
         while (true) {
@@ -679,9 +727,8 @@ public class Client {
                     .build();
 
             for (int i = 1; i <= 5; i++) {
-                this.transport.send(serverAddr, packer);
 
-                /** Add timeout here **/
+                this.transport.send(serverAddr, packer);
 
                 try {
                     ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(message_id);
@@ -703,6 +750,9 @@ public class Client {
         }
     }
 
+    /**
+     * Send duplicate cancels to server.
+     */
     public void sendDuplicateCancelsToServer() {
         UUID uuid;
 
@@ -750,6 +800,9 @@ public class Client {
         }
     }
 
+    /**
+     * Send duplicate changes to server.
+     */
     public void sendDuplicateChangesToServer() {
 
         UUID uuid;
