@@ -123,7 +123,9 @@ public class Transport {
      * @param status    the header for the request message, it only occupies 1 byte
      * @param messageId the header for the request message, it only occupies 1 byte
      * @param reply     the payload to be sent
-     */
+     *
+     * @return marshalled message
+     * */
     public final BytePacker generateReply(OneByteInt status, int messageId, String reply){
 
         BytePacker replyMessage = new BytePacker.Builder()
@@ -140,6 +142,8 @@ public class Transport {
      *
      * @param messageId     the message id to be checked on
      * @param unpackedMsg   the unmarshalled message received
+     *
+     * @return check result
      */
     public final boolean checkMsgId(Integer messageId, ByteUnpacker.UnpackedMsg unpackedMsg) {
         Integer returnMessageId = unpackedMsg.getInteger(MESSAGE_ID);
@@ -154,6 +158,8 @@ public class Transport {
      * The method responsible for checking if the header of the message is 0
      *
      * @param unpackedMsg   the unmarshalled message received
+     *
+     * @return check result
      */
     public final boolean checkStatus(ByteUnpacker.UnpackedMsg unpackedMsg) {
         OneByteInt status = unpackedMsg.getOneByteInt(STATUS);
