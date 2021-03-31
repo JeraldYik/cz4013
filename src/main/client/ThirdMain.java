@@ -44,9 +44,9 @@ public class ThirdMain {
 
         try {
             String userAddr = readLine("Please enter preferred server IP address (enter '0' for default value): ");
-            if(parseInt(userAddr)!=0) serverAddr = userAddr;
+            serverAddr = (userAddr.equals("0")) ? userAddr : "127.0.0.1";
             int userPort = safeReadInt("Please enter preferred server port number (enter '0' for default value): ");
-            if(userPort!=0) serverPort = userPort;
+            serverPort = (userPort != 0) ? userPort : 49152;
         } catch (Exception e) { System.out.println("Invalid values entered! Default values will be used."); }
 
         double failureProbability = safeReadDouble("Enter preferred server reply failure probability (0.0 - 1.0): ");
@@ -97,6 +97,7 @@ public class ThirdMain {
                                 break;
                             case 2:
                                 client.sendDuplicateCancelsToServer();
+                                break;
                             case 3:
                                 client.sendDuplicateExtendsToServer();
                                 break;
