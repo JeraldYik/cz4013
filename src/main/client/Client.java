@@ -608,8 +608,6 @@ public class Client {
         return new Time(userDayChoice, userHourChoice, userMinuteChoice);
     }
 
-    /* TODO: Implement test statements */
-
     public void sendDuplicatePingsToServer() {
         try {
             String testmsg = readLine("Your message: ");
@@ -750,6 +748,48 @@ public class Client {
             }
         } catch (RuntimeException e) {
             System.out.println("Client.cancelBooking - Runtime Exception! " + e.getMessage());
+        }
+    }
+
+    public void sendDuplicateChangesToServer() {
+
+        UUID uuid;
+
+        while (true) {
+            try {
+                uuid = UUID.fromString(readLine("Please enter the confirmation ID of the booking: "));
+                break;
+            } catch (IllegalArgumentException e) {
+                System.out.println("Please enter a valid confirmation ID!");
+            }
+        }
+        int offset = safeReadInt("Please enter the offset desired for this booking in minutes (negative for advancement, positive for postponement)\n(1 => 1min, 60 => 1hour, 3600 => 1 day): ");
+
+        try {
+            int message_id = this.getMessageId();
+
+            BytePacker packer = new BytePacker.Builder()
+                    .setProperty(SERVICE_ID, new OneByteInt(Method.CHANGE))
+                    .setProperty(MESSAGE_ID, message_id)
+                    .setProperty(Method.Change.UUID.toString(), uuid.toString())
+                    .setProperty(Method.Change.OFFSET.toString(), offset)
+                    .build();
+
+            for(int i=1;i<=5;i++) {
+                this.transport.send(serverAddr, packer);
+
+                ByteUnpacker.UnpackedMsg unpackedMsg = transport.receivalProcedure(message_id);
+
+                if (transport.checkStatus(unpackedMsg)) {
+                    String reply = unpackedMsg.getString(REPLY);
+                    System.out.println("Response from server: " + reply);
+                } else {
+                    System.out.println("Failed to change booking");
+                }
+            }
+
+        } catch (IOException e) {
+            System.out.print(e);
         }
     }
 }

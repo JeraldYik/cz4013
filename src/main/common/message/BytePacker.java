@@ -9,12 +9,20 @@ public class BytePacker {
     private ArrayList<String> properties;
     private HashMap<String, Object> propToValue;
 
+    /**
+     * Class constructor of BytePacker
+     */
     private BytePacker() {
         this.properties = new ArrayList<>();
         this.propToValue = new HashMap<>();
     }
 
     // Store object into hashmap based on property key
+    /**
+     * stores object into propToValue hashmap based on property key
+     * @param property -
+     * @param value -
+     */
     private void setValue(String property, Object value){
         this.properties.add(property);
         this.propToValue.put(property, value);

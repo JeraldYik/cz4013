@@ -1,36 +1,47 @@
-# cz4013
+# CZ4013 Distributed Systems
+
+## Repository Structure
+Directory | Contents
+----------| ---------
+'client' | Codes for client side application
+'server'| Codes for server side application
+'common/facility' | Codes for handling booking
+'common/message' | Codes for marshalling and unmarshalling messages
+'common/network' | Codes for sending and receiving messages with socket
 
 
+## Starting Server
+1. Run ServerMain.java
+2. Select invocation semantics
+   * At-Least-Once: 0
+   * At-Most-Once: 1
 
-## To-do list:
+Example:
+* java ServerMain.java
+* 0: At-Least-Once Server 
+* 1: At-Most-Once Server
+* 0
+* Listening on udp://127.0.0.1:49512
 
-- [x] Allow users to query availability of for bookable facilities
+## Starting Client
+1. Run ClientMain.java
+2. Enter probability of packet loss (0.0 - 1.0)
 
-- [x] Allow users to add bookings for available facilities
+Example:
+* java ClientMain.java
+* Enter preferred server reply failure probability (0.0 - 1.0):
+* 0.5
+* Please choose a service by typing [1-]:
+* 1: Query Availability of a Facility
+* 2: Add Booking to a Facility
+* 3: Change Booking to a Facility
+* 4: Monitor Availability of a Facility
+* 5: (Idempotent) Cancel an active Booking
+* 6: (Non-Idempotent) Extend an active Booking time in 30-minute block
+* 7: View available test statements
+* 8: Ping main.server
+* 9: Print the manual
+* 0: Stop the main.client
+* (MAIN MENU) Your choice of service ('9' for MANUAL):
+* 2
 
-- [x] Allow users to change active bookings via time offset
-
-- [x] Idempotent function: Allow users to cancel active bookings
-
-- [x] Allow users to register to monitor facility availability over a week
-
-- [x] Non-idempotent function: Allow users to extend active booking in 30-minute blocks
-
-- [x] Implement fault-tolerance measures (loss of request & reply messages) - At-least-once
-    - [x] Implement timeout simulation
-    - [x] Show that at-least-once invocation semantics can lead to wrong results for non-idempotent operations
-
-- [x] Implement fault-tolerance measures (loss of request & reply messages) - At-most-once
-    - [x] Implement timeout simulation
-    - [x] Show that at-most-once invocation semantics work correctly for non-idempotent operations
-
-- [x] Add type of semantics to use as argument to clientRecord/server
-
-- [x] Allow users to manually assign server IP address and port number
-
-- [ ] Add debug statements to test for At-Least-Once and At-Most-Once invocation semantics
-
-- [ ] To check on flow of project (successes & errors)
-    
-
-    
