@@ -7,10 +7,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
+
 public class History {
 
-    private ArrayList<ClientRecord> clientRecordList;
     public static final int HISTORY_RECORD_SIZE = 10;
+    private final ArrayList<ClientRecord> clientRecordList;
 
     public History() {
         clientRecordList = new ArrayList<>();
@@ -28,10 +29,10 @@ public class History {
     }
 
     public class ClientRecord {
-        private InetAddress address;
-        private int portNumber;
-        private HashMap<Integer, BytePacker> messageIdToReplyMap;
-        private int[] historyRecord;
+        private final InetAddress address;
+        private final int portNumber;
+        private final HashMap<Integer, BytePacker> messageIdToReplyMap;
+        private final int[] historyRecord;
         private int count;
 
         public ClientRecord(InetAddress address, int portNumber) {

@@ -8,7 +8,6 @@ import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 
-import static main.client.Util.readLine;
 import static main.client.Util.safeReadInt;
 
 
@@ -36,9 +35,11 @@ public class ServerMain {
         Facilities facilities = new Facilities();
         Handler handler = new Handler();
 
-        if(atMostOnce) {
+        if (atMostOnce) {
             System.out.print("Current server mode: At-Most-Once");
-        } else { System.out.print("Current server mode: At-Least-Once"); }
+        } else {
+            System.out.print("Current server mode: At-Least-Once");
+        }
 
         try {
             while (true) {

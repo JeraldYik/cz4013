@@ -36,8 +36,7 @@ public class Time {
         else if (t1.day == t2.day) {
             if (t1.hour > t2.hour) return false;
             else if (t1.hour == t2.hour) {
-                if (t1.minute >= t2.minute) return false;
-                else return true;
+                return t1.minute < t2.minute;
             } else return true;
         } else return true;
     }

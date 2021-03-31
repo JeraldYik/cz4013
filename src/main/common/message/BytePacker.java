@@ -1,13 +1,13 @@
 package main.common.message;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.nio.ByteBuffer;
 
 public class BytePacker {
 
-    private ArrayList<String> properties;
-    private HashMap<String, Object> propToValue;
+    private final ArrayList<String> properties;
+    private final HashMap<String, Object> propToValue;
 
     /**
      * Class constructor of BytePacker
@@ -113,7 +113,7 @@ public class BytePacker {
     }
 
     public static class Builder{
-        private BytePacker packer;
+        private final BytePacker packer;
 
         public Builder(){
             packer = new BytePacker();

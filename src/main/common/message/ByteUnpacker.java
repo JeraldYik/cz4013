@@ -6,8 +6,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 public class ByteUnpacker {
-    private ArrayList<String> properties;
-    private HashMap <String, TYPE> propToValue;
+    private final ArrayList<String> properties;
+    private final HashMap <String, TYPE> propToValue;
 
     public ByteUnpacker(){
         properties = new ArrayList<>();
@@ -85,7 +85,7 @@ public class ByteUnpacker {
     }
 
     public static class UnpackedMsg{
-        private HashMap<String, Object> map;
+        private final HashMap<String, Object> map;
 
         public UnpackedMsg(HashMap<String,Object> map){
             this.map = map;
@@ -129,7 +129,7 @@ public class ByteUnpacker {
     }
 
     public static class Builder{
-        private ByteUnpacker unpacker;
+        private final ByteUnpacker unpacker;
         public Builder(){
             unpacker = new ByteUnpacker();
 

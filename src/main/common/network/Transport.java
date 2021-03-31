@@ -121,8 +121,7 @@ public class Transport {
     public final boolean checkStatus(ByteUnpacker.UnpackedMsg unpackedMsg) {
         OneByteInt status = unpackedMsg.getOneByteInt(STATUS);
         System.out.println("Status: " + status.getValue());
-        if (status.getValue() == 0) return true;
-        return false;
+        return status.getValue() == 0;
     }
 
     /** timeout in milliseconds **/

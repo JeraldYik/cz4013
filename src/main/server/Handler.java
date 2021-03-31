@@ -23,9 +23,11 @@ public class Handler {
     protected static final String SERVICE_ID = "SERVICEID";
     protected static final String MESSAGE_ID = "MESSAGEID";
     protected static final String REPLY = "REPLY";
-    private History history;
+    private final History history;
 
-    public Handler() { this.history = new History(); }
+    public Handler() {
+        this.history = new History();
+    }
 
     public void handle(Transport server, Facilities facilities, DatagramPacket p, boolean atMostOnce) {
 
@@ -62,7 +64,7 @@ public class Handler {
             /* COPY FROM HERE */
 
             BytePacker historicalReply = null;
-            if(atMostOnce) historicalReply = client.findDuplicateMessage(messageId);
+            if (atMostOnce) historicalReply = client.findDuplicateMessage(messageId);
 
             if (historicalReply == null) {
                 OneByteInt status = new OneByteInt(0);
@@ -75,15 +77,12 @@ public class Handler {
                 }
 
                 server.send(clientAddr, replyMessageClient);
-            }
-            else {
+            } else {
                 server.send(clientAddr, historicalReply);
             }
             System.out.println("Ping response sent to main.client.");
 
-        }
-
-        else if (serviceRequested == (Method.QUERY)) {
+        } else if (serviceRequested == (Method.QUERY)) {
 
             /** IDEMPOTENT - NO HISTORY SAVING */
 
@@ -109,24 +108,22 @@ public class Handler {
             server.send(clientAddr, replyMessageClient);
             System.out.println("Query sent to Client " + clientAddr);
 
-        }
-
-        else if (serviceRequested == Method.ADD) {
+        } else if (serviceRequested == Method.ADD) {
 
             /** IDEMPOTENT - NO HISTORY SAVING */
 
             // unpack data
             ByteUnpacker unpacker = new ByteUnpacker.Builder()
-                     .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
-                     .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
-                     .setType(Method.Add.STARTDAY.toString(), ByteUnpacker.TYPE.INTEGER)
-                     .setType(Method.Add.STARTHOUR.toString(), ByteUnpacker.TYPE.INTEGER)
-                     .setType(Method.Add.STARTMIN.toString(), ByteUnpacker.TYPE.INTEGER)
-                     .setType(Method.Add.ENDDAY.toString(), ByteUnpacker.TYPE.INTEGER)
-                     .setType(Method.Add.ENDHOUR.toString(), ByteUnpacker.TYPE.INTEGER)
-                     .setType(Method.Add.ENDMIN.toString(), ByteUnpacker.TYPE.INTEGER)
-                     .setType(Method.Add.FACILITY.toString(), ByteUnpacker.TYPE.STRING)
-                     .build();
+                    .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
+                    .setType(MESSAGE_ID, ByteUnpacker.TYPE.INTEGER)
+                    .setType(Method.Add.STARTDAY.toString(), ByteUnpacker.TYPE.INTEGER)
+                    .setType(Method.Add.STARTHOUR.toString(), ByteUnpacker.TYPE.INTEGER)
+                    .setType(Method.Add.STARTMIN.toString(), ByteUnpacker.TYPE.INTEGER)
+                    .setType(Method.Add.ENDDAY.toString(), ByteUnpacker.TYPE.INTEGER)
+                    .setType(Method.Add.ENDHOUR.toString(), ByteUnpacker.TYPE.INTEGER)
+                    .setType(Method.Add.ENDMIN.toString(), ByteUnpacker.TYPE.INTEGER)
+                    .setType(Method.Add.FACILITY.toString(), ByteUnpacker.TYPE.STRING)
+                    .build();
 
             ByteUnpacker.UnpackedMsg unpackedMsg = unpacker.parseByteArray(data);
 
@@ -148,8 +145,8 @@ public class Handler {
                     ? "Booking cannot be added due to clashes with existing bookings"
                     : "Booking confirmed! UUID of booking: " + uuid +
                     " | Facility: " + facility +
-                    " | Start: " + start.getDayAsName() + " " +  start.hour + ":" + start.minute +
-                    " | End: " + end.getDayAsName() + " " +  end.hour + ":" + end.minute;
+                    " | Start: " + start.getDayAsName() + " " + start.hour + ":" + start.minute +
+                    " | End: " + end.getDayAsName() + " " + end.hour + ":" + end.minute;
 
             int messageId = unpackedMsg.getInteger(MESSAGE_ID);
             OneByteInt status = new OneByteInt(0);
@@ -160,9 +157,7 @@ public class Handler {
             System.out.println("New booking uuid sent to client: " + clientAddr + " with booking uuid: " + uuid);
 
             callback(facilities, uuid == null ? null : t, server, status, messageId);
-        }
-
-        else if (serviceRequested == (Method.CHANGE)) {
+        } else if (serviceRequested == (Method.CHANGE)) {
 
             /** NON-IDEMPOTENT - HISTORY SAVING ENABLED WITH AT-MOST-ONCE SERVER */
 
@@ -178,7 +173,7 @@ public class Handler {
             int messageId = unpackedMsg.getInteger(MESSAGE_ID);
 
             // check for duplicates
-            if(atMostOnce) {
+            if (atMostOnce) {
                 BytePacker historicalReply;
                 historicalReply = client.findDuplicateMessage(messageId);
                 if (historicalReply != null) {
@@ -192,7 +187,7 @@ public class Handler {
             Pair<String, Facilities.Types> msg = facilities.changeBooking(uuid, offset);
 
             String replyMsg;
-            if (msg.getValue() == null){
+            if (msg.getValue() == null) {
                 replyMsg = msg.getKey();
             } else {
                 replyMsg = "UUID: " + uuid + ". " + msg.getValue().toString() + ". " + msg.getKey();
@@ -212,9 +207,7 @@ public class Handler {
             System.out.println("Change response sent to Client " + clientAddr);
 
             callback(facilities, msg.getValue(), server, status, messageId);
-        }
-
-        else if (serviceRequested == (Method.MONITOR)) {
+        } else if (serviceRequested == (Method.MONITOR)) {
 
             /** IDEMPOTENT - NO HISTORY SAVING */
 
@@ -242,9 +235,7 @@ public class Handler {
             server.send(clientAddr, replyMessageClient);
             System.out.println("Monitor response sent to Client " + clientAddr);
 
-        }
-
-        else if (serviceRequested == (Method.EXTEND)) {
+        } else if (serviceRequested == (Method.EXTEND)) {
 
             /** NON-IDEMPOTENT - HISTORY SAVING ENABLED WITH AT-MOST-ONCE SERVER */
 
@@ -260,7 +251,7 @@ public class Handler {
             int messageId = unpackedMsg.getInteger(MESSAGE_ID);
 
             // check for duplicates
-            if(atMostOnce) {
+            if (atMostOnce) {
                 BytePacker historicalReply;
                 historicalReply = client.findDuplicateMessage(messageId);
                 if (historicalReply != null) {
@@ -274,7 +265,7 @@ public class Handler {
             Pair<String, Facilities.Types> msg = facilities.extendBooking(uuid, extendTime);
 
             String replyMsg;
-            if (msg.getValue() == null){
+            if (msg.getValue() == null) {
                 replyMsg = msg.getKey();
             } else {
                 replyMsg = "UUID: " + uuid + ". " + msg.getValue().toString() + ". " + msg.getKey();
@@ -294,9 +285,7 @@ public class Handler {
             System.out.println("Extend response sent to Client " + clientAddr);
 
             callback(facilities, msg.getValue(), server, status, messageId);
-        }
-
-        else if (serviceRequested == (Method.CANCEL)) {
+        } else if (serviceRequested == (Method.CANCEL)) {
 
             /** IDEMPOTENT - NO HISTORY SAVING */
 
@@ -312,7 +301,7 @@ public class Handler {
             Pair<String, Facilities.Types> msg = facilities.cancelBooking(uuid);
 
             String replyMsg;
-            if (msg.getValue() == null){
+            if (msg.getValue() == null) {
                 replyMsg = msg.getKey();
             } else {
                 replyMsg = "UUID: " + uuid + ". " + msg.getValue().toString() + ". " + msg.getKey();
@@ -328,9 +317,7 @@ public class Handler {
             System.out.println("Cancel response sent to Client " + clientAddr);
 
             callback(facilities, msg.getValue(), server, status, messageId);
-        }
-
-        else {
+        } else {
             throw new MethodNotFoundException("Server.Handler - Method not handled");
         }
 

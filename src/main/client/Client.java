@@ -22,17 +22,16 @@ import static main.client.Util.*;
 
 public class Client {
 
-    private InetSocketAddress serverAddr;
-    private final Transport transport;
-    private int message_id;
-    private double failureProbability;
-    private final int timeout = 2000;
-    private Random random;
-
     protected static final String STATUS = "STATUS";
     protected static final String SERVICE_ID = "SERVICEID";
     protected static final String MESSAGE_ID = "MESSAGEID";
     protected static final String REPLY = "REPLY";
+    private final Transport transport;
+    private final int timeout = 2000;
+    private final InetSocketAddress serverAddr;
+    private int message_id;
+    private final double failureProbability;
+    private final Random random;
 
 
     public Client(Transport transport, InetSocketAddress serverAddr, double failureProbability) {

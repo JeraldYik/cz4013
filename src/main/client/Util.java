@@ -6,7 +6,7 @@ import java.util.Scanner;
  * This class provides utility to read user input via stdin.
  */
 public class Util {
-    private static Scanner reader = new Scanner(System.in);
+    private static final Scanner reader = new Scanner(System.in);
 
     /**
      * Reads an integer from stdin.
