@@ -2,10 +2,7 @@ package main.client;
 
 import main.common.network.Transport;
 
-import java.net.DatagramSocket;
-import java.net.InetSocketAddress;
-import java.net.SocketException;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.Scanner;
 
 import static java.lang.Integer.parseInt;
@@ -13,6 +10,7 @@ import static main.client.Util.*;
 
 public class ClientMain {
     public static void main(String[] args) throws SocketException {
+
         String clientAddr = "0.0.0.0";
         String serverAddr = "127.0.0.1";
         int serverPort = 49152;
@@ -47,6 +45,11 @@ public class ClientMain {
             if(parseInt(userAddr)!=0) serverAddr = userAddr;
             int userPort = safeReadInt("Please enter preferred server port number (enter '0' for default value): ");
             if(userPort!=0) serverPort = userPort;
+
+            userAddr = readLine("Please enter preferred client IP address (enter '0' for default value): ");
+            if(parseInt(userAddr)!=0) clientAddr = userAddr;
+            userPort = safeReadInt("Please enter preferred client port number (enter '0' for default value): ");
+            if(userPort!=0) clientPort = userPort;
         } catch (Exception e) { System.out.println("Invalid values entered! Default values will be used."); }
 
         double failureProbability = safeReadDouble("Enter preferred server reply failure probability (0.0 - 1.0): ");
