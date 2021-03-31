@@ -20,12 +20,6 @@ public class BytePacker {
         this.propToValue.put(property, value);
     }
 
-    /**
-     * Get byte array byte [ ].
-     *
-     * @return the byte [ ]
-     */
-
     public byte[] getByteArray(){
         /*
             Calculate the size required for the byte array

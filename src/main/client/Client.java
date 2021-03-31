@@ -25,52 +25,22 @@ import static main.client.Util.*;
  */
 public class Client {
 
-    /**
-     * The constant STATUS.
-     */
     protected static final String STATUS = "STATUS";
-    /**
-     * The constant SERVICE_ID.
-     */
     protected static final String SERVICE_ID = "SERVICEID";
-    /**
-     * The constant MESSAGE_ID.
-     */
     protected static final String MESSAGE_ID = "MESSAGEID";
-    /**
-     * The constant REPLY.
-     */
     protected static final String REPLY = "REPLY";
-    /**
-     * The Transport.
-     */
     private final Transport transport;
-    /**
-     * The Timeout.
-     */
     private final int timeout = 2000;
-    /**
-     * The Server addr.
-     */
     private final InetSocketAddress serverAddr;
-    /**
-     * The Message id.
-     */
     private int message_id;
-    /**
-     * The Failure probability.
-     */
     private final double failureProbability;
-    /**
-     * The Random.
-     */
     private final Random random;
 
 
     /**
      * Instantiates a new Client.
      *
-     * @param transport          the transport
+     * @param transport          the transport instance
      * @param serverAddr         the server addr
      * @param failureProbability the failure probability
      */
@@ -602,8 +572,8 @@ public class Client {
     /**
      * Print bookings.
      *
-     * @param response the response
-     * @param t        the t
+     * @param response the response from server
+     * @param t        the type of facility
      */
     private void printBookings(String response, Facilities.Types t) {
         if (t == null) {
