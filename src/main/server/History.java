@@ -8,6 +8,7 @@ import java.util.HashMap;
 import main.common.message.BytePacker;
 
 public class History {
+
     private ArrayList<ClientRecord> clientRecordList;
     public static final int HISTORY_RECORD_SIZE = 10;
 
@@ -42,7 +43,6 @@ public class History {
             Arrays.fill(historyRecord, -1);
         }
 
-
         public BytePacker findDuplicateMessage(int messageId) {
             BytePacker reply = this.messageIdToReplyMap.get(messageId);
             if (reply != null) {
@@ -50,7 +50,6 @@ public class History {
             }
             return reply;
         }
-
 
         public void addReplyEntry(int messageId, BytePacker reply) {
             if (historyRecord[count] != -1) {
