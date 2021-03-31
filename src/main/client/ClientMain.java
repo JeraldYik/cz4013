@@ -35,9 +35,10 @@ public class ClientMain {
                 "Please choose a test function by typing [1-]:\n" +
                 "1: Send repeated ping requests with duplicate message IDs\n" +
                 "2: Send repeated booking cancellation requests with duplicate message IDs (idempotent)\n" +
-                "3: Send repeated booking extension requests with duplicate message IDs (non-idempotent)\n" +
-                "4: Back to main menu\n" +
-                "5: Print menu\n";
+                "3: Send repeated booking change (offset) requests with duplicate message IDs (non-idempotent)\n" +
+                "4: Send repeated booking extension requests with duplicate message IDs (non-idempotent)\n" +
+                "5: Back to main menu\n" +
+                "6: Print menu\n";
 
 
         try {
@@ -93,20 +94,24 @@ public class ClientMain {
                     boolean quit = false;
                     System.out.println(TEST);
                     while(!quit) {
-                        int testChoice = safeReadInt("Choose your function (Enter '5' for menu): ");
+                        int testChoice = safeReadInt("Choose your function (Enter '6' for menu): ");
                         switch (testChoice) {
                             case 1:
                                 client.sendDuplicatePingsToServer();
                                 break;
                             case 2:
                                 client.sendDuplicateCancelsToServer();
+                                break;
                             case 3:
-                                client.sendDuplicateExtendsToServer();
+                                client.sendDuplicateChangesToServer();
                                 break;
                             case 4:
-                                quit = true;
+                                client.sendDuplicateExtendsToServer();
                                 break;
                             case 5:
+                                quit = true;
+                                break;
+                            case 6:
                                 System.out.println(TEST);
                                 break;
                         }
