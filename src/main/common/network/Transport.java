@@ -15,13 +15,11 @@ public class Transport {
     byte[] buffer;
 
     protected static final String STATUS = "STATUS";
-    protected static final String SERVICE_ID = "SERVICEID";
     protected static final String MESSAGE_ID = "MESSAGEID";
     protected static final String REPLY = "REPLY";
 
     /**
-     * Instantiates a new Transport instance. Called by both Client and Server.
-     *
+     * @constructor for Transport class. Called by both Client and Server.
      * @param socket    the socket for packets to be sent from and received by
      * @param bufferLen the length of the buffer allocated to the contents of the received packet
      */
@@ -33,6 +31,8 @@ public class Transport {
 
     /**
      * The receive method
+     *
+     * @return DatagramPacket before unmarshalling
      */
     public DatagramPacket receive() throws IOException {
         Arrays.fill(this.buffer, (byte) 0);
@@ -67,6 +67,7 @@ public class Transport {
      * checks if the received packet is intended for this specific client/server
      *
      * @param messageId     the id of the message for the check on the received packet
+     * @return unmarshalled message
      */
     public ByteUnpacker.UnpackedMsg receivalProcedure(int messageId) throws IOException {
         while (true) {
@@ -95,6 +96,8 @@ public class Transport {
 
     /**
      * The method responsible for unmarshalling the received packet without the check
+     *
+     * @return unmarshalled message
      */
     public ByteUnpacker.UnpackedMsg receivalProcedure() {
         while (true) {
@@ -167,7 +170,9 @@ public class Transport {
      *
      * @param timeout   the timeout of the socket, calculated from now till the specified end time of the monitoring interval
      * @param messageId the supposed message id of the received packet
-     */
+     *
+     * @return unmarshalled message
+     * */
     public ByteUnpacker.UnpackedMsg setNonZeroTimeoutReceivalProcedure(int timeout, int messageId) throws MonitoringExpireException, IOException{
         try {
             this.socket.setSoTimeout(timeout);
@@ -186,7 +191,9 @@ public class Transport {
      * messageIds are naturally different hence check is disabled
      *
      * @param timeout   the timeout of the socket, calculated from now till the specified end time of the monitoring interval
-     */
+     *
+     * @return unmarshalled message
+     * */
     public ByteUnpacker.UnpackedMsg setNonZeroTimeoutReceivalProcedure(int timeout) throws MonitoringExpireException, IOException{
         try {
             this.socket.setSoTimeout(timeout);
@@ -195,5 +202,4 @@ public class Transport {
             throw new MonitoringExpireException();
         }
     }
-
 }

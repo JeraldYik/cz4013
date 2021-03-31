@@ -24,7 +24,7 @@ public class Handler {
     private final History history;
 
     /**
-     * Instantiates a new Handler with a new History instance
+     * @constructor for Handler class with a new History instance
      */
     public Handler() {
         this.history = new History();
