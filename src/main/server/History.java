@@ -9,32 +9,29 @@ import java.util.HashMap;
 
 
 /**
- * The type History.
+ * This class implements server-side message history for At-Most-Once invocation semantics.
+ * Whenever a client request is received, a client record is created and stored.
+ * From there, any reply generated is stored in the client record, and retrieved if a duplicate request is received.
  */
 public class History {
 
-    /**
-     * The constant HISTORY_RECORD_SIZE.
-     */
     public static final int HISTORY_RECORD_SIZE = 10;
-    /**
-     * The Client record list.
-     */
     private final ArrayList<ClientRecord> clientRecordList;
 
     /**
-     * Instantiates a new History.
+     * @constructor for History class
      */
     public History() {
         clientRecordList = new ArrayList<>();
     }
 
     /**
-     * Find client client record.
+     * Finds existing client record.
+     * If no existing client record is found, create new record and add to clientRecord.
      *
-     * @param address the address
-     * @param port    the port
-     * @return the client record
+     * @param address Client IP address
+     * @param port    Client port number
+     * @return clientRecord
      */
     public ClientRecord findClient(InetAddress address, int port) {
 
@@ -49,35 +46,20 @@ public class History {
     }
 
     /**
-     * The type Client record.
+     * Created for each client that sends a request to the server
      */
     public class ClientRecord {
-        /**
-         * The Address.
-         */
+
         private final InetAddress address;
-        /**
-         * The Port number.
-         */
         private final int portNumber;
-        /**
-         * The Message id to reply map.
-         */
         private final HashMap<Integer, BytePacker> messageIdToReplyMap;
-        /**
-         * The History record.
-         */
         private final int[] historyRecord;
-        /**
-         * The Count.
-         */
         private int count;
 
         /**
-         * Instantiates a new Client record.
-         *
-         * @param address    the address
-         * @param portNumber the port number
+         * @constructor for Client class
+         * @param address    client IP address
+         * @param portNumber client port number
          */
         public ClientRecord(InetAddress address, int portNumber) {
             this.address = address;
@@ -89,10 +71,10 @@ public class History {
         }
 
         /**
-         * Find duplicate message byte packer.
+         * Find duplicate messageIds from stored server replies in messageIdToReplyMap
          *
-         * @param messageId the message id
-         * @return the byte packer
+         * @param messageId client request messageId
+         * @return stored reply if found, else return null
          */
         public BytePacker findDuplicateMessage(int messageId) {
             BytePacker reply = this.messageIdToReplyMap.get(messageId);
@@ -103,10 +85,10 @@ public class History {
         }
 
         /**
-         * Add reply entry.
+         * Adds a new reply entry to messageIdToReplyMap once client operation is executed
          *
-         * @param messageId the message id
-         * @param reply     the reply
+         * @param messageId messageId of incoming request
+         * @param reply     reply generated in Handler to be stored
          */
         public void addReplyEntry(int messageId, BytePacker reply) {
             if (historyRecord[count] != -1) {
