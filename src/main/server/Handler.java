@@ -11,12 +11,11 @@ import main.common.network.Method;
 import main.common.network.MethodNotFoundException;
 import main.common.network.Transport;
 import main.server.History.ClientRecord;
-import java.net.*;
 
+import java.net.DatagramPacket;
+import java.net.InetSocketAddress;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.UUID;
 
 public class Handler {
 
@@ -86,7 +85,7 @@ public class Handler {
 
         else if (serviceRequested == (Method.QUERY)) {
 
-            /* IDEMPOTENT - NO HISTORY SAVING */
+            /** IDEMPOTENT - NO HISTORY SAVING */
 
             ByteUnpacker unpacker = new ByteUnpacker.Builder()
                     .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
@@ -114,7 +113,7 @@ public class Handler {
 
         else if (serviceRequested == Method.ADD) {
 
-            /* IDEMPOTENT - NO HISTORY SAVING */
+            /** IDEMPOTENT - NO HISTORY SAVING */
 
             // unpack data
             ByteUnpacker unpacker = new ByteUnpacker.Builder()
@@ -165,7 +164,7 @@ public class Handler {
 
         else if (serviceRequested == (Method.CHANGE)) {
 
-            /* NON-IDEMPOTENT - HISTORY SAVING ENABLED WITH AT-MOST-ONCE SERVER */
+            /** NON-IDEMPOTENT - HISTORY SAVING ENABLED WITH AT-MOST-ONCE SERVER */
 
             ByteUnpacker unpacker = new ByteUnpacker.Builder()
                     .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
@@ -217,7 +216,7 @@ public class Handler {
 
         else if (serviceRequested == (Method.MONITOR)) {
 
-            /* IDEMPOTENT - NO HISTORY SAVING */
+            /** IDEMPOTENT - NO HISTORY SAVING */
 
             ByteUnpacker unpacker = new ByteUnpacker.Builder()
                     .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
@@ -247,7 +246,7 @@ public class Handler {
 
         else if (serviceRequested == (Method.EXTEND)) {
 
-            /* NON-IDEMPOTENT - HISTORY SAVING ENABLED WITH AT-MOST-ONCE SERVER */
+            /** NON-IDEMPOTENT - HISTORY SAVING ENABLED WITH AT-MOST-ONCE SERVER */
 
             ByteUnpacker unpacker = new ByteUnpacker.Builder()
                     .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)
@@ -299,7 +298,7 @@ public class Handler {
 
         else if (serviceRequested == (Method.CANCEL)) {
 
-            /* IDEMPOTENT - NO HISTORY SAVING */
+            /** IDEMPOTENT - NO HISTORY SAVING */
 
             ByteUnpacker unpacker = new ByteUnpacker.Builder()
                     .setType(SERVICE_ID, ByteUnpacker.TYPE.ONE_BYTE_INT)

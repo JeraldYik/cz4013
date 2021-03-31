@@ -2,8 +2,6 @@ package main.common.facility;
 
 import javafx.util.Pair;
 
-import java.lang.reflect.Array;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -16,11 +14,11 @@ public class Facilities {
         MR2
     }
 
-    HashMap<Types, Availability> availability;
-    HashMap<Types, ArrayList<UUID>> bookings;
-    PriorityQueue<LocalDateTime> timePQ;
-    HashMap<LocalDateTime, NodeInformation> timeMap;
-    HashMap<Types, ArrayList<NodeInformation>> monitors;
+    private final HashMap<Types, Availability> availability;
+    private final HashMap<Types, ArrayList<UUID>> bookings;
+    private final PriorityQueue<LocalDateTime> timePQ;
+    private final HashMap<LocalDateTime, NodeInformation> timeMap;
+    private final HashMap<Types, ArrayList<NodeInformation>> monitors;
 
     private static class TimeComparator implements Comparator<LocalDateTime> {
         @Override

@@ -2,8 +2,9 @@ package main.client;
 
 import main.common.network.Transport;
 
-import java.net.*;
-import java.util.Scanner;
+import java.net.DatagramSocket;
+import java.net.InetSocketAddress;
+import java.net.SocketException;
 
 import static java.lang.Integer.parseInt;
 import static main.client.Util.*;
@@ -38,19 +39,6 @@ public class ClientMain {
                 "3: Send repeated booking extension requests with duplicate message IDs (non-idempotent)\n" +
                 "4: Back to main menu\n" +
                 "5: Print menu\n";
-
-
-        try {
-            String userAddr = readLine("Please enter preferred server IP address (enter '0' for default value): ");
-            if(parseInt(userAddr)!=0) serverAddr = userAddr;
-            int userPort = safeReadInt("Please enter preferred server port number (enter '0' for default value): ");
-            if(userPort!=0) serverPort = userPort;
-
-            userAddr = readLine("Please enter preferred client IP address (enter '0' for default value): ");
-            if(parseInt(userAddr)!=0) clientAddr = userAddr;
-            userPort = safeReadInt("Please enter preferred client port number (enter '0' for default value): ");
-            if(userPort!=0) clientPort = userPort;
-        } catch (Exception e) { System.out.println("Invalid values entered! Default values will be used."); }
 
         double failureProbability = safeReadDouble("Enter preferred server reply failure probability (0.0 - 1.0): ");
         while (failureProbability > 1.0) {

@@ -1,11 +1,11 @@
 package main.server;
 
+import main.common.message.BytePacker;
+
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import main.common.message.BytePacker;
 
 public class History {
 

@@ -16,13 +16,6 @@ public class ServerMain {
         int port = 49152;
         boolean atMostOnce = false;
 
-        try {
-            String userAddr = readLine("Please enter preferred server IP address (enter '0' for default value): ");
-            if(parseInt(userAddr)!=0) serverHost = userAddr;
-            int userPort = safeReadInt("Please enter preferred server port number (enter '0' for default value): ");
-            if(userPort!=0) port = userPort;
-        } catch (Exception e) { System.out.println("Invalid values entered! Default values will be used."); }
-
         System.out.print(
                 "0: At-Least-Once Server\n" +
                         "1: At-Most-Once Server\n");

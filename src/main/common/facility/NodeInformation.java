@@ -1,6 +1,5 @@
 package main.common.facility;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 public class NodeInformation {
