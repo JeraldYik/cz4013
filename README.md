@@ -18,7 +18,8 @@ Directory | Contents
 
 Example:
 * java ServerMain.java
-* 0: At-Least-Once Server 1: At-Most-Once Server
+* 0: At-Least-Once Server 
+* 1: At-Most-Once Server
 * 0
 * Listening on udp://127.0.0.1:49512
 
