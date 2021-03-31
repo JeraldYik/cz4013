@@ -21,7 +21,9 @@ import java.util.UUID;
 import static main.client.Util.*;
 
 /**
- * The type Client.
+ * The Client class handles the sending and receiving of requests and replies from the Server
+ * by keeping an instance of the socket initiated as well as calling the marshalling and unmarshalling
+ * functions from common/message
  */
 public class Client {
 
@@ -62,7 +64,7 @@ public class Client {
     }
 
     /**
-     * Send message to server.
+     * This functions is called to send a ping message to Server.
      */
     public void sendMessageToServer() {
         try {
@@ -108,7 +110,8 @@ public class Client {
     }
 
     /**
-     * Query availability.
+     * This functions is called when the user wishes to query the availability of facilities.
+     * It allows the user to enter a specific facility before sending the request to the Server.
      */
     public void queryAvailability() {
         String MANUAL = "----------------------------------------------------------------\n" +
@@ -181,7 +184,9 @@ public class Client {
     }
 
     /**
-     * Add booking.
+     * This function allows the user to add a new booking.
+     * It allows the user to enter a specific facility, as well as starting datetime and ending datetime
+     * before sending the request to the Server.
      */
     public void addBooking() {
         String facility = "";
@@ -299,7 +304,8 @@ public class Client {
     }
 
     /**
-     * Change booking.
+     * This function allows the user to change an active booking. It takes in the uuid and offset input
+     * from the user and sends to the Server.
      */
     public void changeBooking() {
 
@@ -359,7 +365,9 @@ public class Client {
     }
 
     /**
-     * Monitor availability.
+     * This function allows the user to monitor the availability of a specific facility.
+     * The interval for which the user wishes the monitor the facility for as well as the name of the
+     * facility will be read in and send as a request to the Server.
      */
     public void monitorAvailability() {
         boolean terminate = false;
@@ -463,7 +471,8 @@ public class Client {
     }
 
     /**
-     * Cancel booking.
+     * This function allows the user to cancel an active booking by taking in the uuid. The function
+     * would send the uuid as a request for cancellation to the Server.
      */
 // an idempotent operation
     public void cancelBooking() {
@@ -509,7 +518,8 @@ public class Client {
     }
 
     /**
-     * Extend booking.
+     * This function allows the user to extend an active booking.
+     * The function will read in the uuid and the number of hours of extension to be send to the Server
      */
 // a non-idempotent operation
     public void extendBooking() {
@@ -570,7 +580,9 @@ public class Client {
     }
 
     /**
-     * Print bookings.
+     * This is a helper function for queryAvailability and monitorAvailability which
+     * takes the String response from the server, formats the output and prints it on the console
+     * as individual bookings with a start and end time.
      *
      * @param response the response from server
      * @param t        the type of facility
@@ -597,7 +609,8 @@ public class Client {
     }
 
     /**
-     * Gets time.
+     * This function returns the Time object that corresponds to the different integers
+     * entered by the user.
      *
      * @param prompt the prompt
      * @return the time
@@ -649,7 +662,7 @@ public class Client {
     }
 
     /**
-     * Send duplicate pings to server.
+     * This function serves to test the invocation semantics by sending duplicate pings to server.
      */
     public void sendDuplicatePingsToServer() {
         try {
@@ -698,7 +711,7 @@ public class Client {
     }
 
     /**
-     * Send duplicate extends to server.
+     * This function serves to test the invocation semantics by sending duplicate extends to server.
      */
     public void sendDuplicateExtendsToServer() {
         UUID uuid;
@@ -750,7 +763,7 @@ public class Client {
     }
 
     /**
-     * Send duplicate cancels to server.
+     * This function serves to test the invocation semantics by sending duplicate cancels to server.
      */
     public void sendDuplicateCancelsToServer() {
         UUID uuid;
@@ -800,7 +813,7 @@ public class Client {
     }
 
     /**
-     * Send duplicate changes to server.
+     * This function serves to test the invocation semantics by sending duplicate changes to server.
      */
     public void sendDuplicateChangesToServer() {
 
