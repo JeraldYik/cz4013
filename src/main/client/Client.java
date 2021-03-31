@@ -41,11 +41,29 @@ public class Client {
      * The constant REPLY.
      */
     protected static final String REPLY = "REPLY";
+    /**
+     * The Transport.
+     */
     private final Transport transport;
+    /**
+     * The Timeout.
+     */
     private final int timeout = 2000;
+    /**
+     * The Server addr.
+     */
     private final InetSocketAddress serverAddr;
+    /**
+     * The Message id.
+     */
     private int message_id;
+    /**
+     * The Failure probability.
+     */
     private final double failureProbability;
+    /**
+     * The Random.
+     */
     private final Random random;
 
 
@@ -371,8 +389,7 @@ public class Client {
     }
 
     /**
-     * For simplicity, you may assume that the user that has issued a register request for monitoring is blocked from inputting any new request until the monitor interval expires,
-     * i.e., the client simply waits for the updates from the server during the monitoring interval. As a result, you do not have to use multiple threads at a client.
+     * Monitor availability.
      */
     public void monitorAvailability() {
         boolean terminate = false;
@@ -582,6 +599,12 @@ public class Client {
         }
     }
 
+    /**
+     * Print bookings.
+     *
+     * @param response the response
+     * @param t        the t
+     */
     private void printBookings(String response, Facilities.Types t) {
         if (t == null) {
             System.out.println("Facility Type is null for unknown reason");
@@ -603,6 +626,12 @@ public class Client {
         }
     }
 
+    /**
+     * Gets time.
+     *
+     * @param prompt the prompt
+     * @return the time
+     */
     private Time getTime(String prompt) {
         System.out.println(prompt);
         String DAYS_MANUAL = "1: Monday\n"

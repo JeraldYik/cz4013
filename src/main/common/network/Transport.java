@@ -9,60 +9,22 @@ import java.io.StreamCorruptedException;
 import java.net.*;
 import java.util.Arrays;
 
-/**
- * IMPORTANT:
- * Assume that request from main.client is resolved before new requests from other clients are sent (from lab manual)
- * therefore, there is no need for a queue
- */
 public class Transport {
-    /**
-     * The Socket.
-     */
     DatagramSocket socket;
-    /**
-     * The Buffer len.
-     */
     int bufferLen;
-    /**
-     * The Buffer.
-     */
     byte[] buffer;
 
-    /**
-     * The constant STATUS.
-     */
     protected static final String STATUS = "STATUS";
-    /**
-     * The constant SERVICE_ID.
-     */
     protected static final String SERVICE_ID = "SERVICEID";
-    /**
-     * The constant MESSAGE_ID.
-     */
     protected static final String MESSAGE_ID = "MESSAGEID";
-    /**
-     * The constant REPLY.
-     */
     protected static final String REPLY = "REPLY";
 
-    /**
-     * Instantiates a new Transport.
-     *
-     * @param socket    the socket
-     * @param bufferLen the buffer len
-     */
     public Transport(DatagramSocket socket, int bufferLen) {
         this.socket = socket;
         this.bufferLen = bufferLen;
         this.buffer = new byte[bufferLen];
     }
 
-    /**
-     * Receive datagram packet.
-     *
-     * @return the datagram packet
-     * @throws IOException the io exception
-     */
     public DatagramPacket receive() throws IOException {
         Arrays.fill(this.buffer, (byte) 0);
         DatagramPacket packet = new DatagramPacket(this.buffer, this.buffer.length);
@@ -76,12 +38,6 @@ public class Transport {
     }
 
 
-    /**
-     * Send.
-     *
-     * @param dest   the dest
-     * @param packer the packer
-     */
     public void send(InetSocketAddress dest, BytePacker packer) {
         byte[] msg = packer.getByteArray();
         try {
@@ -92,13 +48,6 @@ public class Transport {
         return;
     }
 
-    /**
-     * Receival procedure byte unpacker . unpacked msg.
-     *
-     * @param messageId the message id
-     * @return the byte unpacker . unpacked msg
-     * @throws IOException the io exception
-     */
     public ByteUnpacker.UnpackedMsg receivalProcedure(int messageId) throws IOException {
         while (true) {
             try {
@@ -124,10 +73,6 @@ public class Transport {
         }
     }
 
-    /** Overloaded method for broadcasted updates to monitoring clients **/
-    /**
-     * checkMsgId disabled  @return the byte unpacker . unpacked msg
-     */
     public ByteUnpacker.UnpackedMsg receivalProcedure() {
         while (true) {
             try {
@@ -146,14 +91,6 @@ public class Transport {
         }
     }
 
-    /**
-     * Generate reply byte packer.
-     *
-     * @param status    the status
-     * @param messageId the message id
-     * @param reply     the reply
-     * @return the byte packer
-     */
     public final BytePacker generateReply(OneByteInt status, int messageId, String reply){
 
         BytePacker replyMessage = new BytePacker.Builder()
@@ -165,13 +102,6 @@ public class Transport {
          return replyMessage;
     }
 
-    /**
-     * Check msg id boolean.
-     *
-     * @param messageId   the message id
-     * @param unpackedMsg the unpacked msg
-     * @return the boolean
-     */
     public final boolean checkMsgId(Integer messageId, ByteUnpacker.UnpackedMsg unpackedMsg) {
         Integer returnMessageId = unpackedMsg.getInteger(MESSAGE_ID);
         if (returnMessageId != null) {
@@ -181,26 +111,12 @@ public class Transport {
         return false;
     }
 
-    /**
-     * Check status boolean.
-     *
-     * @param unpackedMsg the unpacked msg
-     * @return the boolean
-     */
     public final boolean checkStatus(ByteUnpacker.UnpackedMsg unpackedMsg) {
         OneByteInt status = unpackedMsg.getOneByteInt(STATUS);
         System.out.println("Status: " + status.getValue());
         return status.getValue() == 0;
     }
 
-    /**
-     * timeout in milliseconds  @param timeout the timeout
-     *
-     * @param messageId the message id
-     * @return the non zero timeout receival procedure
-     * @throws MonitoringExpireException the monitoring expire exception
-     * @throws IOException               the io exception
-     */
     public ByteUnpacker.UnpackedMsg setNonZeroTimeoutReceivalProcedure(int timeout, int messageId) throws MonitoringExpireException, IOException{
         try {
             this.socket.setSoTimeout(timeout);
@@ -210,13 +126,6 @@ public class Transport {
         }
     }
 
-    /**
-     * Overloaded method for broadcasted updates to monitoring clients  @param timeout the timeout
-     *
-     * @return the non zero timeout receival procedure
-     * @throws MonitoringExpireException the monitoring expire exception
-     * @throws IOException               the io exception
-     */
     public ByteUnpacker.UnpackedMsg setNonZeroTimeoutReceivalProcedure(int timeout) throws MonitoringExpireException, IOException{
         try {
             this.socket.setSoTimeout(timeout);
