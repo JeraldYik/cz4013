@@ -28,12 +28,6 @@ public class BytePacker {
         this.propToValue.put(property, value);
     }
 
-    public Object getValue(String property) {
-        return propToValue.get(property);
-    }
-
-    public HashMap<String, Object> getPropToValue() { return this.propToValue; }
-
 
     public byte[] getByteArray(){
         /*
