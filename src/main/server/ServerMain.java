@@ -18,7 +18,7 @@ public class ServerMain {
 
         try {
             String userAddr = readLine("Please enter preferred server IP address (enter '0' for default value): ");
-            if(parseInt(userAddr)!=0) serverHost = userAddr;
+            if(!userAddr.equals("0")) serverHost = userAddr;
             int userPort = safeReadInt("Please enter preferred server port number (enter '0' for default value): ");
             if(userPort!=0) port = userPort;
         } catch (Exception e) { System.out.println("Invalid values entered! Default values will be used."); }
