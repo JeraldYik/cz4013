@@ -5,36 +5,18 @@ import javafx.util.Pair;
 import java.util.HashMap;
 import java.util.UUID;
 
-/**
- * The type Availability.
- */
 public class Availability {
 
     private final HashMap<UUID, Pair<Time, Time>> bookings;
 
-    /**
-     * Instantiates a new Availability.
-     */
     public Availability() {
         this.bookings = new HashMap<>();
     }
 
-    /**
-     * Query availability hash map.
-     *
-     * @return the hash map
-     */
     public HashMap<UUID, Pair<Time, Time>> queryAvailability() {
         return this.bookings;
     }
 
-    /**
-     * Add booking uuid.
-     *
-     * @param start the start
-     * @param end   the end
-     * @return the uuid
-     */
     public UUID addBooking(Time start, Time end) {
         if (!this.bookings.isEmpty()) {
             // check for overlap
@@ -52,12 +34,6 @@ public class Availability {
         return uuid;
     }
 
-    /**
-     * The change does not modify the length of the time period booked  @param uuid the uuid
-     *
-     * @param offset the offset
-     * @return the pair
-     */
     public Pair<String, Boolean> changeBooking(String uuid, int offset) {
         if (this.bookings.isEmpty()) return new Pair("Failure! Booking cannot be found.", false);
         UUID u_uuid = UUID.fromString(uuid);
@@ -94,12 +70,6 @@ public class Availability {
         return new Pair("Success! Booking updated.", true);
     }
 
-    /**
-     * The change modifies the length of the time period booked  @param uuid the uuid
-     *
-     * @param extend the extend
-     * @return the pair
-     */
     public Pair<String, Boolean> extendBooking(String uuid, double extend) {
         if (this.bookings.isEmpty()) return new Pair("Failure! Booking cannot be found.", false);
         UUID u_uuid = UUID.fromString(uuid);
@@ -129,12 +99,6 @@ public class Availability {
         return new Pair("Success! Booking updated.", true);
     }
 
-    /**
-     * Cancel booking pair.
-     *
-     * @param uuid the uuid
-     * @return the pair
-     */
     public Pair<String, Boolean> cancelBooking(String uuid) {
         if (this.bookings.isEmpty()) return new Pair("Failure! Booking cannot be found.", false);
         UUID u_uuid = UUID.fromString(uuid);

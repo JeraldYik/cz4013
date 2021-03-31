@@ -6,29 +6,11 @@ import java.net.InetSocketAddress;
 import java.time.LocalDateTime;
 import java.util.*;
 
-/**
- * The type Facilities.
- */
 public class Facilities {
-    /**
-     * The enum Types.
-     */
     public enum Types {
-        /**
-         * Lt 1 types.
-         */
         LT1,
-        /**
-         * Lt 2 types.
-         */
         LT2,
-        /**
-         * Mr 1 types.
-         */
         MR1,
-        /**
-         * Mr 2 types.
-         */
         MR2
     }
 
@@ -45,9 +27,6 @@ public class Facilities {
         }
     }
 
-    /**
-     * Instantiates a new Facilities.
-     */
     public Facilities() {
         this.availability = new HashMap<>();
         this.bookings = new HashMap<>();
@@ -61,23 +40,10 @@ public class Facilities {
         }
     }
 
-    /**
-     * Query availability array list.
-     *
-     * @param t the t
-     * @return the array list
-     */
     public ArrayList<Pair<Time, Time>> queryAvailability(Types t) {
         return new ArrayList(this.availability.get(t).queryAvailability().values());
     }
 
-    /**
-     * Return null if unsuccessful  @param t the t
-     *
-     * @param start the start
-     * @param end   the end
-     * @return the string
-     */
     public String addBooking(Types t, Time start, Time end) {
         UUID uuid = this.availability.get(t).addBooking(start, end);
         System.out.println("Starting time: " + start);
@@ -89,12 +55,6 @@ public class Facilities {
         }
     }
 
-    /**
-     * Return Facility Type null if unsuccessful  @param uuid the uuid
-     *
-     * @param offset the offset
-     * @return the pair
-     */
     public Pair<String, Facilities.Types> changeBooking(String uuid, int offset) {
         Types t = null;
         for (HashMap.Entry<Types, ArrayList<UUID>> entry : this.bookings.entrySet()) {
@@ -107,11 +67,6 @@ public class Facilities {
         return new Pair(result.getKey(), result.getValue() == null ? null : t);
     }
 
-    /**
-     * Return Facility Type null if unsuccessful  @param uuid the uuid
-     *
-     * @return the pair
-     */
     public Pair<String, Facilities.Types> cancelBooking(String uuid) {
         Types t = null;
         for (HashMap.Entry<Types, ArrayList<UUID>> entry : this.bookings.entrySet()) {
@@ -124,14 +79,6 @@ public class Facilities {
         return new Pair(result.getKey(), result.getValue() == null ? null : t);
     }
 
-    /**
-     * Monitor availability local date time.
-     *
-     * @param t               the t
-     * @param monitorInterval the monitor interval
-     * @param addr            the addr
-     * @return the local date time
-     */
     public LocalDateTime monitorAvailability(Types t, int monitorInterval, InetSocketAddress addr) {
         LocalDateTime stop = LocalDateTime.now().plusMinutes(monitorInterval);
         this.timePQ.add(stop);
@@ -142,12 +89,6 @@ public class Facilities {
         return stop;
     }
 
-    /**
-     * Return Facility Type null if unsuccessful  @param uuid the uuid
-     *
-     * @param extend the extend
-     * @return the pair
-     */
     public Pair<String, Facilities.Types> extendBooking(String uuid, double extend) {
         Types t = null;
         for (HashMap.Entry<Types, ArrayList<UUID>> entry : this.bookings.entrySet()) {
@@ -160,10 +101,6 @@ public class Facilities {
         return new Pair(result.getKey(), result.getValue() == null ? null : t);
     }
 
-    /**
-     * Called whenever an update occurs
-     * Use this method to remove target client from cache
-     */
     public void deregister() {
         if (this.timePQ.isEmpty()) return;
         LocalDateTime now = LocalDateTime.now();
@@ -182,12 +119,6 @@ public class Facilities {
         }
     }
 
-    /**
-     * Clients to update array list.
-     *
-     * @param t the t
-     * @return the array list
-     */
     public ArrayList<NodeInformation> clientsToUpdate(Facilities.Types t) {
         return this.monitors.get(t);
     }

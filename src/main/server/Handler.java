@@ -38,6 +38,9 @@ public class Handler {
      * The constant REPLY.
      */
     protected static final String REPLY = "REPLY";
+    /**
+     * The History.
+     */
     private final History history;
 
     /**
@@ -350,6 +353,15 @@ public class Handler {
         System.out.println("-----------------");
     }
 
+    /**
+     * Callback.
+     *
+     * @param facilities the facilities
+     * @param t          the t
+     * @param server     the server
+     * @param status     the status
+     * @param messageId  the message id
+     */
     private static void callback(Facilities facilities, Facilities.Types t, Transport server, OneByteInt status, int messageId) {
         if (t == null) return;
 
@@ -365,6 +377,12 @@ public class Handler {
         }
     }
 
+    /**
+     * Parse bookings to string string.
+     *
+     * @param bookings the bookings
+     * @return the string
+     */
     private static String parseBookingsToString(ArrayList<Pair<Time, Time>> bookings) {
         StringBuilder sb = new StringBuilder();
         for (Pair<Time, Time> b : bookings) {

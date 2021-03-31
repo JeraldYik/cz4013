@@ -17,6 +17,9 @@ public class History {
      * The constant HISTORY_RECORD_SIZE.
      */
     public static final int HISTORY_RECORD_SIZE = 10;
+    /**
+     * The Client record list.
+     */
     private final ArrayList<ClientRecord> clientRecordList;
 
     /**
@@ -27,7 +30,7 @@ public class History {
     }
 
     /**
-     * Find client record.
+     * Find client client record.
      *
      * @param address the address
      * @param port    the port
@@ -49,10 +52,25 @@ public class History {
      * The type Client record.
      */
     public class ClientRecord {
+        /**
+         * The Address.
+         */
         private final InetAddress address;
+        /**
+         * The Port number.
+         */
         private final int portNumber;
+        /**
+         * The Message id to reply map.
+         */
         private final HashMap<Integer, BytePacker> messageIdToReplyMap;
+        /**
+         * The History record.
+         */
         private final int[] historyRecord;
+        /**
+         * The Count.
+         */
         private int count;
 
         /**
