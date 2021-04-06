@@ -6,6 +6,7 @@ import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 
+import static main.client.Util.readLine;
 import static main.client.Util.safeReadDouble;
 import static main.client.Util.safeReadInt;
 
@@ -16,6 +17,17 @@ public class ClientMain {
         String serverAddr = "127.0.0.1";
         int serverPort = 49152;
         int clientPort = 49153;
+
+        try {
+            String userAddr = readLine("Please enter preferred server IP address (enter '0' for default value): ");
+            if(!userAddr.equals("0")) serverAddr = userAddr;
+            int userPort = safeReadInt("Please enter preferred server port number (enter '0' for default value): ");
+            if(userPort!=0) serverPort = userPort;
+            String user2Addr = readLine("Please enter preferred client IP address (enter '0' for default value): ");
+            if(!user2Addr.equals("0")) clientAddr = user2Addr;
+            int user2Port = safeReadInt("Please enter preferred client port number (enter '0' for default value): ");
+            if(user2Port!=0) clientPort = user2Port;
+        } catch (Exception e) { System.out.println("Invalid values entered! Default values will be used."); }
 
         String MANUAL =
                 "----------------------------------------------------------------\n" +
