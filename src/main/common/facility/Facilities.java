@@ -64,7 +64,7 @@ public class Facilities {
         }
         if (t == null) { return new Pair("UUID: " + uuid + " cannot be found.", null); }
         Pair<String, Boolean> result = this.availability.get(t).changeBooking(uuid, offset);
-        return new Pair(result.getKey(), result.getValue() == null ? null : t);
+        return new Pair(result.getKey(), result.getValue() ? t : null);
     }
 
     public Pair<String, Facilities.Types> cancelBooking(String uuid) {
@@ -76,7 +76,7 @@ public class Facilities {
         }
         if (t == null) return new Pair("UUID: " + uuid + " cannot be found.", null);
         Pair<String, Boolean> result = this.availability.get(t).cancelBooking(uuid);
-        return new Pair(result.getKey(), result.getValue() == null ? null : t);
+        return new Pair(result.getKey(), result.getValue() ? t : null);
     }
 
     public LocalDateTime monitorAvailability(Types t, int monitorInterval, InetSocketAddress addr) {
@@ -98,7 +98,7 @@ public class Facilities {
         }
         if (t == null) return new Pair("Confirmation ID: " + uuid + " cannot be found.", null);
         Pair<String, Boolean> result = this.availability.get(t).extendBooking(uuid, extend);
-        return new Pair(result.getKey(), result.getValue() == null ? null : t);
+        return new Pair(result.getKey(), result.getValue() ? t : null);
     }
 
     public void deregister() {
